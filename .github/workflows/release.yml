@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package addon
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Packaging PLBeast ${VERSION}"
+          # Keep the in-game TOC version in sync with the release tag.
+          sed -i "s/^## Version: .*/## Version: ${VERSION}/" PLBeast/PLBeast.toc
+          mkdir -p dist
+          # The addon already lives in a top-level PLBeast/ folder, so zip it
+          # directly — extracting the asset drops PLBeast/ straight into AddOns/.
+          zip -r "dist/PLBeast-${VERSION}.zip" PLBeast
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ASSET="dist/PLBeast-${VERSION}.zip"
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ASSET" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$ASSET" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "PLBeast $GITHUB_REF_NAME" \
+              --generate-notes
+          fi
