@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PLBeast UI Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    background-image:
+      radial-gradient(ellipse at 50% 60%, #2a2a4a 0%, #1a1a2e 70%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .wow-hud {
+    position: relative;
+    width: 900px;
+    height: 600px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 40%, #2d3748 0%, #1a202c 100%);
+  }
+
+  .hud-label {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Action bars hint */
+  .action-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+  }
+  .action-slot {
+    width: 36px;
+    height: 36px;
+    background: #1a1a2e;
+    border: 1px solid #444;
+    border-radius: 3px;
+    opacity: 0.3;
+  }
+
+  /* Health/mana bars hint */
+  .unit-frames {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    opacity: 0.25;
+  }
+  .health-bar {
+    width: 180px;
+    height: 14px;
+    background: linear-gradient(90deg, #2d8a4e, #3daa5e);
+    border: 1px solid #555;
+    border-radius: 2px;
+  }
+  .mana-bar {
+    width: 180px;
+    height: 10px;
+    background: linear-gradient(90deg, #2d5a8a, #3d7abe);
+    border: 1px solid #555;
+    border-radius: 2px;
+  }
+
+  /* === PLBeast Icon === */
+  .plbeast-icon {
+    position: absolute;
+    cursor: move;
+    z-index: 10;
+  }
+  .plbeast-icon .border-wrap {
+    padding: var(--border-size, 2px);
+    background: var(--border-color, #ffd700);
+  }
+  .plbeast-icon .icon-img {
+    display: block;
+    image-rendering: pixelated;
+  }
+  .plbeast-icon .label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #aaa;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .plbeast-icon:hover .label {
+    opacity: 1;
+  }
+
+  /* Drag indicator */
+  .drag-indicator {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: #ffd700;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .plbeast-icon.draggable .drag-indicator {
+    opacity: 1;
+  }
+  .plbeast-icon.draggable .border-wrap {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+  }
+
+  /* === Options Frame === */
+  .options-frame {
+    position: absolute;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+    width: 260px;
+    background: linear-gradient(180deg, #1e2433 0%, #171d2b 100%);
+    border: 2px solid #555;
+    border-radius: 4px;
+    padding: 16px;
+    z-index: 20;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .options-frame h3 {
+    font-size: 14px;
+    color: #ffd700;
+    margin-bottom: 14px;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .opt-group {
+    margin-bottom: 12px;
+  }
+  .opt-group label {
+    display: block;
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .opt-group .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .opt-group input[type="range"] {
+    flex: 1;
+    accent-color: #ffd700;
+    height: 6px;
+  }
+  .opt-group .val {
+    font-size: 12px;
+    color: #ddd;
+    min-width: 28px;
+    text-align: right;
+    font-family: monospace;
+  }
+  .opt-group input[type="color"] {
+    width: 32px;
+    height: 24px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: none;
+    cursor: pointer;
+  }
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .color-row span {
+    font-size: 12px;
+    color: #ddd;
+    font-family: monospace;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .toggle-row input[type="checkbox"] {
+    accent-color: #ffd700;
+    width: 14px;
+    height: 14px;
+  }
+  .toggle-row span {
+    font-size: 12px;
+    color: #ccc;
+  }
+
+  .divider {
+    height: 1px;
+    background: #444;
+    margin: 12px 0;
+  }
+
+  /* Beast selector for demo */
+  .beast-selector {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    z-index: 30;
+  }
+  .beast-selector button {
+    padding: 6px 14px;
+    background: #2d3748;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+  .beast-selector button:hover {
+    background: #3d4758;
+    border-color: #777;
+  }
+  .beast-selector button.active {
+    background: #4a3a1a;
+    border-color: #ffd700;
+    color: #ffd700;
+  }
+
+  .info-text {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 10px;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<div class="wow-hud">
+  <div class="hud-label">WoW HUD (simulated)</div>
+
+  <div class="unit-frames">
+    <div class="health-bar"></div>
+    <div class="mana-bar"></div>
+  </div>
+
+  <div class="action-bar">
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+    <div class="action-slot"></div>
+  </div>
+
+  <!-- PLBeast Icon -->
+  <div class="plbeast-icon" id="beastIcon" style="top: 240px; left: 410px;">
+    <div class="drag-indicator">⬧ DRAG TO MOVE ⬧</div>
+    <div class="border-wrap" id="borderWrap">
+      <canvas id="beastCanvas" width="48" height="48"></canvas>
+    </div>
+    <div class="label">PLBeast — Next: <span id="beastName">Boar</span></div>
+  </div>
+
+  <!-- Options Frame -->
+  <div class="options-frame" id="optionsFrame">
+    <h3>PLBeast</h3>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="dragToggle">
+      <span>Unlock (drag to move)</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="opt-group">
+      <label>Width</label>
+      <div class="slider-row">
+        <input type="range" id="widthSlider" min="24" max="96" value="48">
+        <span class="val" id="widthVal">48</span>
+      </div>
+    </div>
+
+    <div class="opt-group">
+      <label>Height</label>
+      <div class="slider-row">
+        <input type="range" id="heightSlider" min="24" max="96" value="48">
+        <span class="val" id="heightVal">48</span>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="syncToggle" checked>
+      <span>Sync width &amp; height</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="opt-group">
+      <label>Border Color</label>
+      <div class="color-row">
+        <input type="color" id="borderColor" value="#ffd700">
+        <span id="colorHex">#ffd700</span>
+      </div>
+    </div>
+
+    <div class="opt-group">
+      <label>Border Thickness</label>
+      <div class="slider-row">
+        <input type="range" id="borderSlider" min="0" max="6" value="2">
+        <span class="val" id="borderVal">2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beast preview buttons -->
+  <div class="beast-selector">
+    <button class="active" onclick="setBeast('boar')">Boar</button>
+    <button onclick="setBeast('bear')">Bear</button>
+    <button onclick="setBeast('wyvern')">Wyvern</button>
+  </div>
+
+  <div class="info-text">Interactive mockup — drag icon, adjust settings</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('beastCanvas');
+  const ctx = canvas.getContext('2d');
+  const icon = document.getElementById('beastIcon');
+  const borderWrap = document.getElementById('borderWrap');
+
+  const beastColors = {
+    boar:   { body: '#c47a3a', snout: '#dda466', eye: '#222', tusk: '#f0e6c0', accent: '#8b5e2b' },
+    bear:   { body: '#6b4226', snout: '#a07050', eye: '#222', claw: '#ddd',     accent: '#4a2e18' },
+    wyvern: { body: '#3a7a5a', wing: '#2d6648', eye: '#ff4444', horn: '#c8b87a', accent: '#255540' }
+  };
+
+  function drawBeast(type) {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark background
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, w, h);
+
+    const c = beastColors[type];
+    const cx = w / 2, cy = h / 2;
+
+    if (type === 'boar') {
+      // Body
+      ctx.fillStyle = c.body;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 2, 16, 13, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Snout
+      ctx.fillStyle = c.snout;
+      ctx.beginPath();
+      ctx.ellipse(cx + 10, cy + 4, 8, 6, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      // Tusks
+      ctx.strokeStyle = c.tusk;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + 14, cy + 1);
+      ctx.lineTo(cx + 18, cy - 4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + 14, cy + 7);
+      ctx.lineTo(cx + 18, cy + 12);
+      ctx.stroke();
+      // Eye
+      ctx.fillStyle = c.eye;
+      ctx.beginPath();
+      ctx.arc(cx + 4, cy - 2, 2, 0, Math.PI * 2);
+      ctx.fill();
+      // Ear
+      ctx.fillStyle = c.accent;
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy - 10);
+      ctx.lineTo(cx + 4, cy - 14);
+      ctx.lineTo(cx + 6, cy - 8);
+      ctx.closePath();
+      ctx.fill();
+    } else if (type === 'bear') {
+      // Body
+      ctx.fillStyle = c.body;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 2, 17, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Ears
+      ctx.beginPath();
+      ctx.arc(cx - 10, cy - 12, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + 10, cy - 12, 5, 0, Math.PI * 2);
+      ctx.fill();
+      // Inner ears
+      ctx.fillStyle = c.snout;
+      ctx.beginPath();
+      ctx.arc(cx - 10, cy - 12, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + 10, cy - 12, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Snout
+      ctx.fillStyle = c.snout;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 6, 8, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Nose
+      ctx.fillStyle = '#222';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 3, 3, 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Eyes
+      ctx.fillStyle = c.eye;
+      ctx.beginPath();
+      ctx.arc(cx - 6, cy - 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + 6, cy - 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'wyvern') {
+      // Wings
+      ctx.fillStyle = c.wing;
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 2);
+      ctx.lineTo(cx - 22, cy - 14);
+      ctx.lineTo(cx - 18, cy + 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx + 6, cy - 2);
+      ctx.lineTo(cx + 22, cy - 14);
+      ctx.lineTo(cx + 18, cy + 4);
+      ctx.closePath();
+      ctx.fill();
+      // Body
+      ctx.fillStyle = c.body;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 2, 12, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Head
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - 10, 7, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Horns
+      ctx.strokeStyle = c.horn;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy - 14);
+      ctx.lineTo(cx - 8, cy - 22);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + 4, cy - 14);
+      ctx.lineTo(cx + 8, cy - 22);
+      ctx.stroke();
+      // Eyes
+      ctx.fillStyle = c.eye;
+      ctx.beginPath();
+      ctx.arc(cx - 3, cy - 11, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + 3, cy - 11, 2, 0, Math.PI * 2);
+      ctx.fill();
+      // Tail
+      ctx.strokeStyle = c.accent;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 14);
+      ctx.quadraticCurveTo(cx + 8, cy + 22, cx + 2, cy + 26);
+      ctx.stroke();
+    }
+
+    document.getElementById('beastName').textContent =
+      type.charAt(0).toUpperCase() + type.slice(1);
+  }
+
+  let currentBeast = 'boar';
+  function setBeast(type) {
+    currentBeast = type;
+    drawBeast(type);
+    document.querySelectorAll('.beast-selector button').forEach(b => {
+      b.classList.toggle('active', b.textContent.toLowerCase() === type);
+    });
+  }
+
+  // Drag
+  let dragging = false, dragOff = { x: 0, y: 0 };
+  const dragToggle = document.getElementById('dragToggle');
+
+  dragToggle.addEventListener('change', () => {
+    icon.classList.toggle('draggable', dragToggle.checked);
+  });
+
+  icon.addEventListener('mousedown', e => {
+    if (!dragToggle.checked) return;
+    dragging = true;
+    const rect = icon.getBoundingClientRect();
+    const hudRect = icon.parentElement.getBoundingClientRect();
+    dragOff.x = e.clientX - rect.left;
+    dragOff.y = e.clientY - rect.top;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const hudRect = icon.parentElement.getBoundingClientRect();
+    icon.style.left = (e.clientX - hudRect.left - dragOff.x) + 'px';
+    icon.style.top = (e.clientY - hudRect.top - dragOff.y) + 'px';
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  // Size
+  const widthSlider = document.getElementById('widthSlider');
+  const heightSlider = document.getElementById('heightSlider');
+  const syncToggle = document.getElementById('syncToggle');
+
+  function updateSize() {
+    canvas.width = parseInt(widthSlider.value);
+    canvas.height = parseInt(heightSlider.value);
+    document.getElementById('widthVal').textContent = widthSlider.value;
+    document.getElementById('heightVal').textContent = heightSlider.value;
+    drawBeast(currentBeast);
+  }
+
+  widthSlider.addEventListener('input', () => {
+    if (syncToggle.checked) heightSlider.value = widthSlider.value;
+    updateSize();
+  });
+  heightSlider.addEventListener('input', () => {
+    if (syncToggle.checked) widthSlider.value = heightSlider.value;
+    updateSize();
+  });
+
+  // Border
+  const borderColor = document.getElementById('borderColor');
+  const borderSlider = document.getElementById('borderSlider');
+
+  borderColor.addEventListener('input', () => {
+    borderWrap.style.background = borderColor.value;
+    document.getElementById('colorHex').textContent = borderColor.value;
+  });
+  borderSlider.addEventListener('input', () => {
+    borderWrap.style.padding = borderSlider.value + 'px';
+    document.getElementById('borderVal').textContent = borderSlider.value;
+  });
+
+  // Init
+  drawBeast('boar');
+</script>
+</body>
+</html>

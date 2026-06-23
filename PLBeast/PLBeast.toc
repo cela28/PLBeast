@@ -1,0 +1,10 @@
+## Interface: 120000, 120005, 120007
+## Title: PLBeast
+## Notes: Displays the next Pack Leader beast.
+## Author: cela
+## Version: 0.2.4
+## SavedVariablesPerCharacter: PLBeastDB
+## IconTexture: Interface\Icons\Ability_Hunter_AnimalCompanion
+
+Locales\enUS.lua
+PLBeast.lua
