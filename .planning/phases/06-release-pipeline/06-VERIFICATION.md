@@ -1,7 +1,7 @@
 ---
 phase: 06-release-pipeline
 verified: 2026-06-29T12:00:00Z
-status: passed
+status: human_needed
 score: 9/9 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
