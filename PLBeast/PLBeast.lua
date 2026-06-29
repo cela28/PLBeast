@@ -805,8 +805,7 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 	elseif event == "ACTIVE_PLAYER_SPECIALIZATION_CHANGED" then
 		-- Phase 5.1: D-08 — spec change resets prediction to boar (Azor DetectSpec(true) line 436)
 		ClearPackLeaderState()
-		nextBeastId = "boar"
-		SaveState()
+		SetNextBeastId("boar")
 		QueueVisibilityRefresh()
 
 	elseif event == "PLAYER_REGEN_ENABLED" then
