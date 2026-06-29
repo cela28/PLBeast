@@ -3,71 +3,97 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-06-22
-**Phase:** 6-Release Pipeline
-**Areas discussed:** Packaging, Version sync, Release notes, Distribution
+**Date:** 2026-06-29 (updated from 2026-06-22)
+**Phase:** 06-release-pipeline
+**Areas discussed:** Packaging approach, Trigger style, TOC version injection, Release notes style, Version & merge strategy, Workflow validation
+
+**Update context:** Original discussion on 2026-06-22 chose BigWigsMods/packager. Since then, a simple zip workflow was created on `origin/main` (matching Duncedmaxxing's pattern), Phase 5.1 completed, and manual zips were removed. This update revises decisions to match the actual implementation and sibling addon patterns.
 
 ---
 
-## Packaging
+## Packaging Approach (revised from 2026-06-22)
+
+**Original (2026-06-22):**
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| BigWigs packager | BigWigsMods/packager action — WoW-community standard; handles zip naming, GitHub release, TOC version substitution; needs .pkgmeta to isolate PLBeast/ | ✓ |
-| Hand-rolled zip | Plain workflow: zip PLBeast/ then attach via gh release / softprops-action; no external action, no .pkgmeta | |
+| BigWigs packager | BigWigsMods/packager action with .pkgmeta | ✓ (original) |
+| Hand-rolled zip | Plain zip + gh release | |
 
-**User's choice:** BigWigs packager
-**Notes:** The repo holds the addon in a `PLBeast/` subfolder alongside `PackLeaderHelper` and `.planning/`; isolating just `PLBeast/` into the zip was flagged as the main technical task for research/planning (CONTEXT D-02), validated against the existing manual zips.
+**Update (2026-06-29):**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Simple zip (current) | `zip -r` + `gh release create` — already on main, matches Duncedmaxxing | ✓ |
+| BigWigs packager | Overengineered for a single-subfolder addon | |
+
+**User's directive:** "Check your parent directory to see what Duncedmaxxing is doing and the other addons and copy them."
+**Notes:** Validated all sibling addons — Duncedmaxxing's workflow is nearly identical to PLBeast's current one. D-01 revised, D-02 dropped.
 
 ---
 
-## Version sync
+## Trigger Style (new area)
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Inject from tag | Packager replaces `## Version: @project-version@` with the tag-derived version at build time; git tag = single source of truth | ✓ |
-| Keep manual TOC bump | User hand-edits `## Version`, commits, tags to match; workflow ships TOC verbatim | |
+| Tag push (current) | Push a `v*` tag → workflow creates release + zip | ✓ |
+| Release created (SCR pattern) | Create release manually → workflow attaches zip | |
 
-**User's choice:** "Either works, not sure about the difference" → Claude recommended and selected **Inject from tag**
-**Notes:** User was unsure of the distinction. Claude explained: manual bumps risk tag/TOC drift; tag-injection deletes a manual step and that class of bug, fitting the minimal-maintenance preference. Chosen on that basis; flagged as easily reversible to manual.
+**User's choice:** Tag push
+**Notes:** Matches current workflow and Duncedmaxxing. One-step process.
 
 ---
 
-## Release notes
+## TOC Version Injection (revised)
+
+**Original:** `@project-version@` substitution via BigWigs packager
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Auto from commits | GitHub auto-generates notes from commits/PRs since last tag | |
-| Minimal / empty | Bare title, zip attached, empty body; leanest, no upkeep | ✓ |
-| CHANGELOG.md | Maintain CHANGELOG.md and feed matching section into release body | |
+| Keep sed (current) | Workflow seds tag version into TOC before zipping | ✓ |
+| Drop sed (SCR pattern) | Manually bump TOC before tagging | |
+| Use @project-version@ | Placeholder in TOC, packager substitutes | |
 
-**User's choice:** Minimal / empty
-**Notes:** No CHANGELOG exists today; user opted for zero maintenance. Planner to suppress any default packager-generated changelog if necessary.
+**User's choice:** Keep sed — same as Duncedmaxxing.
 
 ---
 
-## Distribution
+## Release Notes Style (revised)
+
+**Original:** Minimal / empty body
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| GitHub only | Publish to GitHub Releases only; no extra secrets/accounts | ✓ |
-| Also CurseForge/Wago | Also upload to CurseForge / Wago / WoWInterface; needs project IDs + API token secrets | |
+| Auto-generated (current) | `--generate-notes` from commits | ✓ |
+| Empty body | Just the zip, no notes | |
 
-**User's choice:** GitHub only
-**Notes:** Matches standalone/minimal ethos. CurseForge/Wago kept open as a future-milestone option since the BigWigs packager supports them natively.
+**User's choice:** Auto-generated
+**Notes:** User asked to verify sibling addon patterns first. Duncedmaxxing v1.0.0 and HunterPetStatus v1.4.3 both show auto-generated "Full Changelog" links. Changed from original D-04 (empty) to match the portfolio pattern.
+
+---
+
+## Version & Merge Strategy (new area)
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| v1.0.0 | All phases complete = first stable release | ✓ |
+| v0.3.0 | Continue 0.x series | |
+| Claude decides | Pick based on patterns | |
+
+**User's choice:** v1.0.0
+**Notes:** User reminded about file location rules: `.planning/`, `.claude/`, `CLAUDE.md` must not be on main. Confirmed "direct commits to main" (not merge dev→main) is the pattern — same as Duncedmaxxing.
 
 ---
 
 ## Claude's Discretion
 
-- Workflow file name/path (e.g. `.github/workflows/release.yml`).
-- Exact `.pkgmeta` contents and ignore rules (validated against the known-good manual zip layout).
-- Release zip filename pattern (manual convention `PLBeast-vX.Y.Z.zip` is reasonable to keep).
-- Whether to delete the loose manual zips or just gitignore them.
-- Pinned action version/SHA for `BigWigsMods/packager`.
+- `.gitignore` expansion (align with Duncedmaxxing or leave minimal)
+- Cleanup of PackLeaderHelper files from main (they exist from the original snapshot)
+- Release title format (`PLBeast vX.Y.Z` vs `vX.Y.Z`)
+- Exact method for publishing dev addon code to main (cherry-pick, checkout --path, fresh commits)
 
 ## Deferred Ideas
 
-- Publish to CurseForge / Wago / WoWInterface (future milestone; packager supports natively).
-- Rich release notes / CHANGELOG.md.
-- Repo restructure (PLBeast as repo root, or splitting PackLeaderHelper into its own repo).
+- CurseForge / Wago / WoWInterface publishing (future milestone)
+- Rich release notes / CHANGELOG.md
+- Repo restructure (PLBeast as repo root, or split PackLeaderHelper)
