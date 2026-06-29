@@ -291,6 +291,11 @@ local function CDMFrameHasAura(data)
 		data.cdmFrame = FindCDMFrameByCooldownID(data.cooldownID)
 	end
 	if not data.cdmFrame then return false end
+	-- Validate frame still owns the expected cooldown (pool recycling guard)
+	if data.cooldownID and GetFrameCooldownID(data.cdmFrame) ~= data.cooldownID then
+		data.cdmFrame = FindCDMFrameByCooldownID(data.cooldownID)
+		if not data.cdmFrame then return false end
+	end
 	local instId = data.cdmFrame.auraInstanceID
 	return type(instId) == "number" and instId > 0
 end
