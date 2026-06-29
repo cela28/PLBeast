@@ -52,10 +52,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Release
 
-- [ ] **REL-01**: GitHub Actions workflow that packages the `PLBeast/` folder into a release zip
-- [ ] **REL-02**: Release triggered by git tag push (e.g. `v1.0.0`)
-- [ ] **REL-03**: Release zip structured correctly for WoW addon installation (unzips to `PLBeast/`)
-- [ ] **REL-04**: Repo linked to `cela28/PLBeast` as remote origin
+- [x] **REL-01**: GitHub Actions workflow that packages the `PLBeast/` folder into a release zip
+- [x] **REL-02**: Release triggered by git tag push (e.g. `v1.0.0`)
+- [x] **REL-03**: Release zip structured correctly for WoW addon installation (unzips to `PLBeast/`)
+- [x] **REL-04**: Repo linked to `cela28/PLBeast` as remote origin
 
 ## v2 Requirements
 
@@ -123,10 +123,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | CFG-03 | Phase 5 | Complete |
 | CFG-04 | Phase 5 | Complete |
 | PERF-01 | Phase 5.1 | Complete |
-| REL-01 | Phase 6 | Pending |
-| REL-02 | Phase 6 | Pending |
-| REL-03 | Phase 6 | Pending |
-| REL-04 | Phase 6 | Pending |
+| REL-01 | Phase 6 | Complete |
+| REL-02 | Phase 6 | Complete |
+| REL-03 | Phase 6 | Complete |
+| REL-04 | Phase 6 | Complete |
 
 **Coverage:**
 

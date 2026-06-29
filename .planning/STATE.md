@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05.1
 current_phase_name: event-driven-rotation-tracking-drop-10hz-poll
-status: executing
-stopped_at: Phase 6 context updated
-last_updated: "2026-06-29T09:39:08.223Z"
+status: verifying
+stopped_at: Completed 06-01-PLAN.md — v1.0.0 released
+last_updated: "2026-06-29T11:39:17.188Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 05.1 execution started
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 7
-  completed_plans: 7
-  percent: 86
+  completed_phases: 7
+  total_plans: 8
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-18)
 
 Phase: 05.1 (event-driven-rotation-tracking-drop-10hz-poll) — EXECUTING
 Plan: 1 of 1
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-29 — Phase 05.1 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-icon-ui P01 | 45min | 3 tasks | 1 files |
 | Phase 04-icon-ui P04-02 | 30min | 3 tasks | 1 files |
 | Phase 05.1 P01 | 5min | 1 tasks | 2 files |
+| Phase 06 P01 | 26min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - Init: Use `C_UnitAuras.GetPlayerAuraBySpellID` as primary aura source (not CDM — 12.x only, silent no-op on 11.x)
 - Init: `SavedVariablesPerCharacter` (not per-account) — position, scale, and rotation index are all character-specific
 - Init: Code extracted/adapted from PackLeaderHelper — not written from scratch (STRUCT-02)
+- [Phase ?]: D-06 exercised: expanded .gitignore to match sibling addon patterns
+- [Phase ?]: D-08 followed: direct commits to main via git checkout, keeping .planning/.claude off public branch
+- [Phase ?]: v1.0.0 released: tag-triggered workflow validated end-to-end with correct zip structure
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-29T09:27:23.777Z
-Stopped at: Phase 6 context updated
-Resume file: .planning/phases/06-release-pipeline/06-CONTEXT.md
+Last session: 2026-06-29T11:39:17.183Z
+Stopped at: Completed 06-01-PLAN.md — v1.0.0 released
+Resume file: None

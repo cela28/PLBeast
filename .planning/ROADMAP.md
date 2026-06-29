@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Icon UI** - Draggable/scalable icon, border, position and size persistence (completed 2026-06-21)
 - [x] **Phase 5: Configuration** - Slash command, options frame, drag toggle, combat guard (completed 2026-06-21)
 - [x] **Phase 5.1: Event-Driven Rotation Tracking** - Drop the 10Hz poll; UNIT_AURA-driven detection + lazy CDM re-resolve (INSERTED) (completed 2026-06-29)
-- [ ] **Phase 6: Release Pipeline** - GitHub Actions packaging, tag-triggered release zip
+- [x] **Phase 6: Release Pipeline** - GitHub Actions packaging, tag-triggered release zip (completed 2026-06-29)
 
 ## Phase Details
 
@@ -163,11 +163,11 @@ Plans:
   3. The release zip extracted by a player produces a `PLBeast/` folder at the WoW AddOns installation path (not a nested subfolder)
   4. A GitHub release entry is created automatically with the zip attached
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Publish addon code to main, push v1.0.0 tag, verify release workflow produces correct zip
+- [x] 06-01-PLAN.md — Publish addon code to main, push v1.0.0 tag, verify release workflow produces correct zip
 
 ## Progress
 
@@ -182,4 +182,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 5.1 → 6
 | 4. Icon UI | 2/2 | Complete    | 2026-06-21 |
 | 5. Configuration | 1/1 | Complete    | 2026-06-21 |
 | 5.1. Event-Driven Rotation Tracking | 1/1 | Complete   | 2026-06-29 |
-| 6. Release Pipeline | 0/1 | Not started | - |
+| 6. Release Pipeline | 1/1 | Complete   | 2026-06-29 |
