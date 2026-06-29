@@ -48,7 +48,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Performance
 
-- [ ] **PERF-01**: Beast detection and rotation advancement are event-driven (`UNIT_AURA`, player-only) with no recurring poll ticker — negligible idle CPU/GC cost — while preserving all Phase 2 rotation behavior and the no-freeze guarantee
+- [ ] **PERF-01**: Beast detection and rotation advancement use per-frame CDM poll (OnUpdate with `GetTime()` throttle, matching AzortharionUI's `Hunter.Update()` pattern) with no recurring `C_Timer` poll ticker — negligible idle CPU/GC cost — while preserving rotation behavior and the no-freeze guarantee
 
 ### Release
 
