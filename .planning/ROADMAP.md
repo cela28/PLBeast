@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Visibility Gating** - Pack Leader talent detection, spec filter, event refresh (completed 2026-06-19)
 - [x] **Phase 4: Icon UI** - Draggable/scalable icon, border, position and size persistence (completed 2026-06-21)
 - [x] **Phase 5: Configuration** - Slash command, options frame, drag toggle, combat guard (completed 2026-06-21)
-- [ ] **Phase 5.1: Event-Driven Rotation Tracking** - Drop the 10Hz poll; UNIT_AURA-driven detection + lazy CDM re-resolve (INSERTED)
+- [x] **Phase 5.1: Event-Driven Rotation Tracking** - Drop the 10Hz poll; UNIT_AURA-driven detection + lazy CDM re-resolve (INSERTED) (completed 2026-06-29)
 - [ ] **Phase 6: Release Pipeline** - GitHub Actions packaging, tag-triggered release zip
 
 ## Phase Details
@@ -142,11 +142,11 @@ Plans:
 
 **Reference**: AzortharionUI `Modules/BuffTracking/Hunter.lua` (`PollPackLeader` lines ~245-326: self-correcting prediction; `:298` predict ready beast, `:308` advance on consumption, `:436` spec-change→boar; persists via `RestoreState`). See `.planning/todos/pending/2026-06-23-event-driven-rotation-tracking.md`
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
-- [ ] 05.1-01-PLAN.md — Rewrite detection engine to AzortharionUI's self-correcting model + in-game verification
+- [x] 05.1-01-PLAN.md — Rewrite detection engine to AzortharionUI's self-correcting model + in-game verification
 
 ### Phase 6: Release Pipeline
 
@@ -175,5 +175,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 5.1 → 6
 | 3. Visibility Gating | 1/1 | Complete   | 2026-06-19 |
 | 4. Icon UI | 2/2 | Complete    | 2026-06-21 |
 | 5. Configuration | 1/1 | Complete    | 2026-06-21 |
-| 5.1. Event-Driven Rotation Tracking | 0/? | Not started (INSERTED) | - |
+| 5.1. Event-Driven Rotation Tracking | 1/1 | Complete   | 2026-06-29 |
 | 6. Release Pipeline | 0/? | Not started | - |

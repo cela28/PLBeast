@@ -48,7 +48,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Performance
 
-- [ ] **PERF-01**: Beast detection and rotation advancement use per-frame CDM poll (OnUpdate with `GetTime()` throttle, matching AzortharionUI's `Hunter.Update()` pattern) with no recurring `C_Timer` poll ticker — negligible idle CPU/GC cost — while preserving rotation behavior and the no-freeze guarantee
+- [x] **PERF-01**: Beast detection and rotation advancement use per-frame CDM poll (OnUpdate with `GetTime()` throttle, matching AzortharionUI's `Hunter.Update()` pattern) with no recurring `C_Timer` poll ticker — negligible idle CPU/GC cost — while preserving rotation behavior and the no-freeze guarantee
 
 ### Release
 
@@ -122,7 +122,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | CFG-02 | Phase 5 | Complete |
 | CFG-03 | Phase 5 | Complete |
 | CFG-04 | Phase 5 | Complete |
-| PERF-01 | Phase 5.1 | Pending |
+| PERF-01 | Phase 5.1 | Complete |
 | REL-01 | Phase 6 | Pending |
 | REL-02 | Phase 6 | Pending |
 | REL-03 | Phase 6 | Pending |
