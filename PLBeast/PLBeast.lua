@@ -377,6 +377,9 @@ local function PollPackLeader()
 		plDirty     = true
 	elseif nowReady and hadReady then
 		-- Still ready: update in case beast changed rapidly
+		if nowBeast ~= plBeast then
+			SetNextBeastId(nowBeast.id)
+		end
 		plBeast = nowBeast
 	elseif not nowReady and hadReady then
 		-- Ready buff consumed: advance to next beast (D-06)
