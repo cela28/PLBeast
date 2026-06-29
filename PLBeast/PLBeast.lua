@@ -112,8 +112,8 @@ local isPackLeaderActive = false  -- true only when BM/SV spec and Pack Leader h
 -- Phase 5.1: self-correcting prediction state machine vars (Azor lines 51-56 adapted)
 local plPhase     = "off"   -- 'off' | 'ticking' | 'ready'
 local plBeast     = nil     -- current ready beast data entry; used for NEXT_BEAST lookup
-local plHasCdBuff = false   -- countdown buff active
-local plDirty     = true    -- change flag (kept for future consumers; PLBeast updates icon synchronously)
+-- plHasCdBuff and plDirty removed: dead state (written but never read).
+-- Re-add when a consumer exists.
 
 -- Phase 5.1: OnUpdate throttle for PollPackLeader (GetTime guard, ~1Hz)
 local lastPolledTime = -1
@@ -171,8 +171,6 @@ end
 local function ClearPackLeaderState()
 	plPhase     = "off"
 	plBeast     = nil
-	plHasCdBuff = false
-	plDirty     = true
 end
 
 -- Source: PackLeaderHelper.lua lines 1647–1651 (adapted for D-08 default)
@@ -373,8 +371,6 @@ local function PollPackLeader()
 		plPhase = "ready"
 		plBeast = nowBeast
 		SetNextBeastId(nowBeast.id)
-		plHasCdBuff = false
-		plDirty     = true
 	elseif nowReady and hadReady then
 		-- Still ready: update in case beast changed rapidly
 		if nowBeast ~= plBeast then
@@ -387,7 +383,6 @@ local function PollPackLeader()
 		plBeast = nil
 		local nextId = (oldBeast and NEXT_BEAST[oldBeast.id]) or "boar"
 		SetNextBeastId(nextId)
-		plDirty = true
 	end
 
 	dprint(
