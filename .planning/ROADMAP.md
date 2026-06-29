@@ -182,4 +182,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 5.1 → 6
 | 4. Icon UI | 2/2 | Complete    | 2026-06-21 |
 | 5. Configuration | 1/1 | Complete    | 2026-06-21 |
 | 5.1. Event-Driven Rotation Tracking | 1/1 | Complete   | 2026-06-29 |
-| 6. Release Pipeline | 1/1 | Complete   | 2026-06-29 |
+| 6. Release Pipeline | 1/1 | Complete    | 2026-06-29 |
