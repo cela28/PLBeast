@@ -142,11 +142,11 @@ Plans:
 
 **Reference**: AzortharionUI `Modules/BuffTracking/Hunter.lua` (`PollPackLeader` lines ~245-326: self-correcting prediction; `:298` predict ready beast, `:308` advance on consumption, `:436` spec-change→boar; persists via `RestoreState`). See `.planning/todos/pending/2026-06-23-event-driven-rotation-tracking.md`
 
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 05.1 to break down)
+- [ ] 05.1-01-PLAN.md — Rewrite detection engine to AzortharionUI's self-correcting model + in-game verification
 
 ### Phase 6: Release Pipeline
 
