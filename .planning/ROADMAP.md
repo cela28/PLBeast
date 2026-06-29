@@ -14,7 +14,7 @@ PLBeast is extracted from PackLeaderHelper as a standalone, minimal WoW addon. S
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Addon Scaffold** - TOC, SavedVariables, two-phase init, locale skeleton (completed 2026-06-18)
-- [ ] **Phase 2: Rotation Tracking** - Aura reading, snapshot-diff, cyclic beast advancement
+- [x] **Phase 2: Rotation Tracking** - Aura reading, snapshot-diff, cyclic beast advancement (superseded by Phase 5.1; completed 2026-06-29)
 - [x] **Phase 3: Visibility Gating** - Pack Leader talent detection, spec filter, event refresh (completed 2026-06-19)
 - [x] **Phase 4: Icon UI** - Draggable/scalable icon, border, position and size persistence (completed 2026-06-21)
 - [x] **Phase 5: Configuration** - Slash command, options frame, drag toggle, combat guard (completed 2026-06-21)
@@ -54,10 +54,12 @@ Plans:
   3. After a `/reload` the addon resumes from the previously saved next-beast index; a fresh login / full relog and a boss pull (ENCOUNTER_START) each reset the prediction to wyvern; zoning and trash/world-mob combat leave the prediction unchanged
   4. The rotation advances correctly when logged in as both Beast Mastery and Survival hunter specs
 
-**Plans:** 1 plan
+**Status:** Superseded by Phase 5.1 — all TRACK requirements fulfilled by Azor's self-correcting CDM model
+
+**Plans:** 1 plan (superseded)
 Plans:
 
-- [ ] 02-01-PLAN.md — Implement rotation tracking engine with event-driven detection and debug output
+- [x] 02-01-PLAN.md — Implement rotation tracking engine with event-driven detection and debug output (superseded by 05.1-01-PLAN.md)
 
 ### Phase 3: Visibility Gating
 
@@ -161,7 +163,11 @@ Plans:
   3. The release zip extracted by a player produces a `PLBeast/` folder at the WoW AddOns installation path (not a nested subfolder)
   4. A GitHub release entry is created automatically with the zip attached
 
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 06-01-PLAN.md — Publish addon code to main, push v1.0.0 tag, verify release workflow produces correct zip
 
 ## Progress
 
@@ -171,9 +177,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 5.1 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Addon Scaffold | 1/1 | Complete   | 2026-06-18 |
-| 2. Rotation Tracking | 0/1 | Planning complete | - |
+| 2. Rotation Tracking | 1/1 | Superseded by 5.1 | 2026-06-29 |
 | 3. Visibility Gating | 1/1 | Complete   | 2026-06-19 |
 | 4. Icon UI | 2/2 | Complete    | 2026-06-21 |
 | 5. Configuration | 1/1 | Complete    | 2026-06-21 |
 | 5.1. Event-Driven Rotation Tracking | 1/1 | Complete   | 2026-06-29 |
-| 6. Release Pipeline | 0/? | Not started | - |
+| 6. Release Pipeline | 0/1 | Not started | - |
