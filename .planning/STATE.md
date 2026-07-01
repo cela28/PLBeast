@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 06
-status: released
-stopped_at: v1.0.1 released — tag pushed, release Action passed, zip verified (TOC 1.0.1, correct structure)
-last_updated: "2026-07-01T19:55:00Z"
+current_phase: 0
+status: Awaiting next milestone
+stopped_at: v1.0 milestone closed; v1.0.1 released and in-game UAT 7/7
+last_updated: "2026-07-01T19:59:30.935Z"
 last_activity: 2026-07-01
-last_activity_desc: v1.0.1 released (poll CPU fix + wyvern anchor); in-game UAT 7/7
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -21,19 +21,17 @@ current_phase_name: event-driven-rotation-tracking-drop-10hz-poll
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-18)
+See: .planning/PROJECT.md (updated 2026-07-01)
 
 **Core value:** Accurately predict and display the next beast in the Pack Leader rotation
-**Current focus:** Phase 05.1 — event-driven-rotation-tracking-drop-10hz-poll
+**Current focus:** v1.0 shipped (v1.0.1). Planning next milestone.
 
 ## Current Position
 
-Phase: 06
-Plan: Not started
-Status: Verified — in-game UAT 7/7 passed on v1.0.1 build
-Last activity: 2026-07-01 — In-game UAT complete (7/7); v1.0.1 patch on dev, awaiting release
-
-Progress: [░░░░░░░░░░] 0%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-01 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -79,9 +77,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- [event-driven-rotation-tracking](todos/pending/2026-06-23-event-driven-rotation-tracking.md) — now **Phase 5.1**: match AzortharionUI exactly (self-correcting, event-driven; drop poll)
-- [reconsider-login-boss-reset](todos/pending/2026-06-24-reconsider-login-boss-reset.md) — after 5.1 perf check, decide whether to re-add TRACK-03 login/boss reset
-- [bump-plbeast-toc-version](todos/pending/2026-06-23-bump-plbeast-toc-version.md) — .toc still 0.2.4; bump + version-bump discipline
+- (none — all three v1.0 todos resolved and moved to todos/completed/ on 2026-07-01: event-driven-rotation-tracking shipped as Phase 5.1; reconsider-login-boss-reset re-added in v1.0.1; bump-plbeast-toc-version bumped to 1.0.1)
 
 ### Blockers/Concerns
 
@@ -101,8 +97,13 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
+Items acknowledged and deferred at v1.0 milestone close on 2026-07-01 (superseded by the v1.0.1 comprehensive in-game UAT which passed 7/7):
+
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
+| uat | Phase 01 HUMAN-UAT — 7 pending scenarios (scaffold/load; covered by v1.0.1 UAT Test 1) | Acknowledged | v1.0 close |
+| uat | Phase 03 HUMAN-UAT — 4 pending scenarios (visibility gating) | Acknowledged | v1.0 close |
+| verification | Phase 03 VERIFICATION — human_needed | Acknowledged | v1.0 close |
 | v2 config | CFG-05: `/plbeast reset` sub-command | Deferred | Init |
 | v2 config | CFG-06: `/plbeast test` demo mode | Deferred | Init |
 | v2 config | CFG-07: `/plbeast debug` sub-command | Deferred | Init |
@@ -113,6 +114,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-29T11:39:17.183Z
-Stopped at: Completed 06-01-PLAN.md — v1.0.0 released
+Last session: 2026-07-01
+Stopped at: v1.0 milestone closed & archived. v1.0.1 released (poll CPU fix + wyvern anchor), in-game UAT 7/7. Ready for next milestone.
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

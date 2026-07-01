@@ -17,15 +17,18 @@ Accurately predict and display the next beast in the Pack Leader rotation so the
 - [x] Persist position across sessions (SavedVariables) — *Validated in Phase 4: Icon UI (center-offset persists across /reload and full logout)*
 - [x] Only show when Pack Leader hero talent is active — *Validated in Phase 3: Visibility Gating; icon show/hide bridge wired in Phase 4*
 - [x] Support both Beast Mastery and Survival hunter specs — *Validated in Phase 3: Visibility Gating*
+- ✓ Independently read CDM state to detect beast ready buffs (wyvern, boar, bear) — v1.0 (Phase 2, rebuilt in Phase 5.1 as CDM-frame `auraInstanceID` reads; `C_UnitAuras` fully removed)
+- ✓ Track the cyclic beast spawn order (wyvern → boar → bear) — v1.0 (`NEXT_BEAST` ring)
+- ✓ Advance the prediction when a beast actually spawns — v1.0 (Phase 5.1 self-correcting model: pin-on-ready, advance-on-consume)
+- ✓ Icon is scalable — user can adjust size — v1.0 (Phase 5 sliders; verified in-game)
+- ✓ Persist scale/size and border settings across sessions — v1.0 (Phase 5)
+- ✓ Options panel / slash command for configuration — v1.0 (Phase 5: `/plbeast` combat-guarded options window)
+- ✓ Event-driven detection with negligible idle CPU — v1.0.1 (1Hz `POLL_INTERVAL` throttle; measured 0.001ms avg / 0.03% of app in-game)
+- ✓ Start-of-rotation anchor to wyvern + reset on login/boss pull — v1.0.1 (TRACK-03 re-added)
 
 ### Active
 
-- [ ] Independently read CDM/aura state to detect beast ready buffs (wyvern, boar, bear)
-- [ ] Track the cyclic beast spawn order (wyvern → boar → bear)
-- [ ] Advance the prediction when a beast actually spawns (via ready buff detection)
-- [ ] Icon is scalable — user can adjust size *(sizing code complete in Phase 4; user-facing adjustment + visual verification deferred to Phase 5 sliders)*
-- [ ] Persist scale/size and border settings across sessions *(persistence code complete in Phase 4; hands-on verification carried forward to Phase 5)*
-- [ ] Options panel or slash command for configuration *(Phase 5)*
+(None — v1.0 shipped. Next milestone requirements defined via `/gsd-new-milestone`.)
 
 ### Out of Scope
 
@@ -42,7 +45,14 @@ Accurately predict and display the next beast in the Pack Leader rotation so the
 - The existing NEXT bar UI is at lines 502–520 (`CreateNextBar`) and 2290–2319 (`UpdateNextBar`)
 - PLBeast needs its own CDM integration to read beast ready buffs independently — can reference PackLeaderHelper's CDM cache pattern (lines 1805–1949) but must be self-contained
 - WoW addon constraints: single-threaded Lua, no file I/O, combat lockdown restrictions on UI manipulation, SavedVariables for persistence
-- Target WoW version: The War Within (11.x)
+- Target WoW version: The War Within (12.0.x) — CDM (`C_CooldownViewer`) is the sole beast-detection source as of v1.0.1
+
+**Shipped state (v1.0.1, 2026-07-01):**
+- Single-file addon: `PLBeast/PLBeast.lua` (~830 lines) + `PLBeast.toc` + `Locales/enUS.lua`
+- Detection: CDM-frame `auraInstanceID` reads driven by a 1Hz OnUpdate poll (`POLL_INTERVAL = 1.0`); self-correcting prediction; `C_UnitAuras` removed
+- Distribution: GitHub Releases only, tag-triggered (`v*`) Actions workflow; `main` holds only `PLBeast/` + `.github/`
+- Released v1.0.0 then v1.0.1; in-game UAT 7/7 on v1.0.1
+- Known non-blocking observation: ~1s wyvern→boar visual delay is the 1Hz cadence tradeoff (tunable via `POLL_INTERVAL`)
 
 ## Constraints
 
@@ -55,10 +65,14 @@ Accurately predict and display the next beast in the Pack Leader rotation so the
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Fully independent from PackLeaderHelper | Users may want next-beast prediction without the full PLH tracker | — Pending |
-| Minimal icon only (no label text) | Clean, unobtrusive UI that blends with other addons | Validated — Phase 4 |
-| Draggable + scalable icon | Standard WoW addon UX for movable elements | Drag validated Phase 4; scale UI in Phase 5 |
-| Own CDM/aura reading | No inter-addon communication needed; works standalone | — Pending |
+| Fully independent from PackLeaderHelper | Users may want next-beast prediction without the full PLH tracker | ✓ Good — shipped standalone, no PLH dependency |
+| Minimal icon only (no label text) | Clean, unobtrusive UI that blends with other addons | ✓ Good — Phase 4 |
+| Draggable + scalable icon | Standard WoW addon UX for movable elements | ✓ Good — drag Phase 4, scale sliders Phase 5 |
+| Own CDM/aura reading | No inter-addon communication needed; works standalone | ✓ Good — CDM-frame reads; `C_UnitAuras` removed in 5.1 |
+| CDM as sole detection source (5.1) | Match AzortharionUI; CDM is authoritative on 12.x | ✓ Good — verified in-game |
+| Event-driven poll, not 10Hz ticker (5.1) | Cut idle CPU | ⚠️ Revisit→Fixed — initial 5.1 build ran every frame (bad GetTime guard); v1.0.1 corrected to true 1Hz (0.03% CPU) |
+| Wyvern default anchor + login/boss reset (v1.0.1) | Rotation starts at wyvern; player expectation; validated behavior | ✓ Good — diverges from Azor D-09 by design, removable |
+| GitHub Releases only, tag-triggered | Minimal pipeline, no third-party packager | ✓ Good — v1.0.0/v1.0.1 shipped clean |
 
 ## Evolution
 
@@ -78,4 +92,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-21 after Phase 4 (Icon UI) completion — draggable bordered beast icon with position persistence shipped; size/border config UI deferred to Phase 5.*
+*Last updated: 2026-07-01 after v1.0 milestone completion — full addon shipped and released (v1.0.0 → v1.0.1), in-game UAT 7/7. Detection is CDM-driven at 1Hz; wyvern anchor + login/boss reset restored.*
