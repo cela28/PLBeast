@@ -13,7 +13,7 @@ local DB = PLBeastDB
 
 local defaults = {
 	debug    = false,
-	plNextBeastId = "boar",  -- D-08: default is boar (Azor parity)
+	plNextBeastId = "wyvern",  -- wyvern: start-of-rotation default anchor (TRACK-03; diverges from D-08/Azor, removable)
 	-- Phase 4: icon position, size, border, and drag-lock settings
 	offsetX         = 0,
 	offsetY         = 0,
@@ -104,7 +104,7 @@ end
 -- Module-Level State Variables
 ------------------------------------------------------------
 -- Phase 5.1: Azor-style state machine vars (event-driven CDM polling model)
-local nextBeastId    = "boar"  -- D-08: default is boar, not wyvern
+local nextBeastId    = "wyvern"  -- wyvern: start-of-rotation default anchor (TRACK-03)
 local isBeastMastery = false
 local isSurvival     = false
 local isPackLeaderActive = false  -- true only when BM/SV spec and Pack Leader hero talent active
@@ -115,7 +115,9 @@ local plBeast     = nil     -- current ready beast data entry; used for NEXT_BEA
 -- plHasCdBuff and plDirty removed: dead state (written but never read).
 -- Re-add when a consumer exists.
 
--- Phase 5.1: OnUpdate throttle for PollPackLeader (GetTime guard, ~1Hz)
+-- Phase 5.1: OnUpdate throttle for PollPackLeader — interval-threshold guard of POLL_INTERVAL seconds
+-- (~1Hz, matching Azor's Scheduler interval=1 cadence; enforced by elapsed-threshold comparison)
+local POLL_INTERVAL  = 1.0
 local lastPolledTime = -1
 
 -- CDM (Cooldown Manager) integration state.
@@ -173,14 +175,14 @@ local function ClearPackLeaderState()
 	plBeast     = nil
 end
 
--- Source: PackLeaderHelper.lua lines 1647–1651 (adapted for D-08 default)
--- Note: Default fallback is "boar" per D-08 (Azor parity)
+-- Source: PackLeaderHelper.lua lines 1647–1651 (adapted)
+-- Default fallback is "wyvern" — start-of-rotation anchor (TRACK-03; diverges from Azor D-08, removable)
 local function SetNextBeastId(beastId)
-	nextBeastId      = beastId or "boar"
+	nextBeastId      = beastId or "wyvern"
 	DB.plNextBeastId = nextBeastId
 	-- Phase 4: push texture onto icon when frame exists (guard required: called before frame exists)
 	if root and root.tex then
-		root.tex:SetTexture(ICON_FILE_BY_ID[nextBeastId] or ICON_FILE_BY_ID.boar)
+		root.tex:SetTexture(ICON_FILE_BY_ID[nextBeastId] or ICON_FILE_BY_ID.wyvern)
 	end
 end
 
@@ -386,16 +388,18 @@ local function PollPackLeader()
 		-- Ready buff consumed: advance to next beast (D-06)
 		plPhase = "off"
 		plBeast = nil
-		local nextId = (oldBeast and NEXT_BEAST[oldBeast.id]) or "boar"
+		local nextId = (oldBeast and NEXT_BEAST[oldBeast.id]) or "wyvern"  -- error fallback: wyvern anchor
 		SetNextBeastId(nextId)
 	end
 
-	dprint(
-		"phase=" .. plPhase,
-		"next="  .. (BEAST_LABEL_BY_ID[nextBeastId] or "?"),
-		"ready=" .. tostring(nowReady),
-		"beast=" .. (nowBeast and nowBeast.name or "nil")
-	)
+	if DB and DB.debug then
+		dprint(
+			"phase=" .. plPhase,
+			"next="  .. (BEAST_LABEL_BY_ID[nextBeastId] or "?"),
+			"ready=" .. tostring(nowReady),
+			"beast=" .. (nowBeast and nowBeast.name or "nil")
+		)
+	end
 end
 
 ------------------------------------------------------------
@@ -405,7 +409,7 @@ end
 ------------------------------------------------------------
 local function OnUpdateHandler()
 	local now = GetTime()
-	if now == lastPolledTime then return end
+	if now - lastPolledTime < POLL_INTERVAL then return end
 	lastPolledTime = now
 	PollPackLeader()
 end
@@ -755,10 +759,10 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 				DB.debug = not DB.debug
 				Print(string.format(L["debug=%s"], tostring(DB.debug)))
 			elseif msg == "reset" then
-				-- D-08: reset to boar (not wyvern)
+				-- reset to wyvern (start-of-rotation anchor; TRACK-03 — diverges from D-08, removable)
 				ClearPackLeaderState()
-				SetNextBeastId("boar")
-				Print(L["Rotation reset. Next: Boar."])
+				SetNextBeastId("wyvern")
+				Print(L["Rotation reset. Next: Wyvern."])
 			elseif msg == "" then
 				ToggleOptions()
 			else
@@ -788,6 +792,9 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 		eventFrame:RegisterEvent("TRAIT_SUB_TREE_CHANGED")
 		eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+		-- TRACK-03: register login and boss-pull reset events
+		eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		eventFrame:RegisterEvent("ENCOUNTER_START")
 		Print(L["PLBeast loaded. Type /plbeast for options."])
 
 	elseif event == "COOLDOWN_VIEWER_DATA_LOADED"
@@ -806,9 +813,9 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		QueueVisibilityRefresh()
 
 	elseif event == "ACTIVE_PLAYER_SPECIALIZATION_CHANGED" then
-		-- Phase 5.1: D-08 — spec change resets prediction to boar (Azor DetectSpec(true) line 436)
+		-- spec change resets prediction to wyvern anchor (TRACK-03; diverges from D-08, removable)
 		ClearPackLeaderState()
-		SetNextBeastId("boar")
+		SetNextBeastId("wyvern")
 		QueueVisibilityRefresh()
 
 	elseif event == "PLAYER_REGEN_ENABLED" then
@@ -823,7 +830,19 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 			end
 		end
 
-	-- Phase 5.1: PLAYER_ENTERING_WORLD and ENCOUNTER_START are not registered.
-	-- Per D-09: no login/boss-pull reset. The self-correcting model handles re-sync.
+	elseif event == "PLAYER_ENTERING_WORLD" then
+		-- TRACK-03: reset to wyvern on initial login only (isInitialLogin is first vararg)
+		local isInitialLogin = ...
+		if isInitialLogin then
+			ClearPackLeaderState()
+			SetNextBeastId("wyvern")
+			SaveState()
+		end
+
+	elseif event == "ENCOUNTER_START" then
+		-- TRACK-03: reset to wyvern on every boss pull (event-driven, zero per-frame cost)
+		ClearPackLeaderState()
+		SetNextBeastId("wyvern")
+		SaveState()
 	end
 end)
