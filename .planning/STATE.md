@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 06
-status: verifying
-stopped_at: Completed 06-01-PLAN.md — v1.0.0 released
+status: verified
+stopped_at: In-game UAT complete 7/7 on v1.0.1 build; v1.0.1 patch on dev, not yet released
 last_updated: "2026-06-29T11:47:30.270Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 06 complete
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-06-18)
 
 Phase: 06
 Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-01 — Completed quick task 260701-txf: v1.0.1 patch (poll CPU fix + wyvern anchor); awaiting in-game re-test
+Status: Verified — in-game UAT 7/7 passed on v1.0.1 build
+Last activity: 2026-07-01 — In-game UAT complete (7/7); v1.0.1 patch on dev, awaiting release
 
 Progress: [░░░░░░░░░░] 0%
 

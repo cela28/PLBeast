@@ -1,7 +1,7 @@
 ---
 phase: 06-release-pipeline
-verified: 2026-06-29T12:00:00Z
-status: human_needed
+verified: 2026-07-01T18:45:00Z
+status: verified
 score: 9/9 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -9,6 +9,7 @@ human_verification:
   - test: "Download PLBeast-1.0.0.zip from https://github.com/cela28/PLBeast/releases/tag/v1.0.0, extract into your WoW/_retail_/Interface/AddOns/ directory, log in, and confirm the addon loads without Lua errors"
     expected: "PLBeast folder appears in AddOns list; icon renders; no Lua error on login"
     why_human: "WoW addon loading and runtime Lua execution cannot be verified without the game client"
+    result: "PASS (2026-07-01, 06-UAT.md Test 1) — addon loads clean, icon renders, no Lua errors. In-game UAT also validated the shipped 05.1 engine 7/7 and surfaced two defects (per-frame poll CPU, boar default) fixed in the v1.0.1 patch (quick 260701-txf)."
 ---
 
 # Phase 6: Release Pipeline — Verification Report

@@ -1,5 +1,5 @@
 ---
-status: partial
+status: complete
 phase: 06-release-pipeline
 source:
   - .planning/phases/06-release-pipeline/06-01-SUMMARY.md
@@ -13,10 +13,8 @@ note: |
 ---
 
 ## Current Test
-<!-- OVERWRITE each test - shows where we are -->
 
-[paused — 2 issues found (wyvern default, perf/throttle). Fixing as v1.0.1;
-tests 3, 4, 5, 7 to be run on the patched build.]
+[testing complete — 7/7 passed on the v1.0.1 build]
 
 ## Tests
 
@@ -24,55 +22,55 @@ tests 3, 4, 5, 7 to be run on the patched build.]
 expected: Download PLBeast-1.0.0.zip from the v1.0.0 release, extract into AddOns/, log in on a Pack Leader hunter. PLBeast shows enabled in AddOns list; next-beast icon renders; no Lua error on login or /reload.
 result: pass
 
-### 2. Default prediction is Boar
-expected: On fresh state (no prior prediction saved), the icon shows Boar as the next beast.
-result: issue
-reported: "Icon does show Boar, but the default should be Wyvern — the rotation order is wyvern → boar → bear. Boar-as-default (D-08, Azor parity) is wrong for this player's expectation; original PLBeast reset to wyvern (TRACK-03)."
-severity: major
-note: "Pre-flagged decision gate — see todo 2026-06-24-reconsider-login-boss-reset. Ring order is correct; only the fresh/default anchor is wrong. Self-corrects on first ready buff, so impact is limited to pre-first-cast (fresh login + boss pull)."
+### 2. Default prediction is Wyvern
+expected: On fresh state / initial login / after /plbeast reset, the icon shows Wyvern as the next beast; /plbeast reset prints "Rotation reset. Next: Wyvern."
+result: pass
+note: "Re-tested on v1.0.1 patch (commit 598e2c3). Was 'boar' in v1.0.0; fixed to wyvern anchor + TRACK-03 reset. Confirmed in-game."
 
 ### 3. Rotation advance & self-correction
 expected: In combat using Pack Leader abilities, as each beast's ready buff appears the icon pins to that beast (boar-ready shows the boar icon). On consume it advances boar → bear → wyvern → boar. Prediction matches the actual next beast every cycle and re-syncs if it ever drifts.
-result: [pending]
+result: pass
+observation: "Order tracks correctly. User noted a small delay on the wyvern→boar transition specifically — explicitly flagged as 'not a real issue, just an observation.' Most likely the 1Hz POLL_INTERVAL cadence (up to ~1s to detect a buff change; Azor parity, chosen this patch). Tunable via POLL_INTERVAL (0.25/0.1) if it ever becomes bothersome. Not logged as a gap."
 
 ### 4. Persistence across /reload and relog
 expected: Note the current prediction, then /reload (and optionally log out/in). The prediction is preserved — it does NOT snap back to the default.
-result: [pending]
+result: pass
+note: "/reload preserves prediction (SaveState/RestoreState via DB.plNextBeastId). Full logout/login intentionally resets to wyvern (TRACK-03 isInitialLogin), which is separate and correct."
 
 ### 5. /plbeast reset command
-expected: Running /plbeast reset prints "Rotation reset. Next: Boar." in chat and the icon shows Boar.
-result: [pending]
+expected: Running /plbeast reset prints "Rotation reset. Next: Wyvern." in chat and the icon shows Wyvern.
+result: pass
+note: "Reset target updated boar->wyvern in v1.0.1 (commit 598e2c3). Confirmed message + icon in-game."
 
 ### 6. Idle behavior / no 10Hz poll
 expected: With the icon shown but out of combat and idle, there is no constant CPU churn or stutter (the old 10Hz ticker is gone). If you profile via the addon CPU usage tools, PLBeast's idle CPU is negligible.
-result: issue
+result: pass
 reported: "User measured CPU usage in-game and it is higher than expected."
 severity: major
 root_cause: |
-  The OnUpdate throttle is broken. RESEARCH.md:200 falsely claims GetTime() has
+  The OnUpdate throttle was broken. RESEARCH.md:200 falsely claimed GetTime() has
   1-second resolution, so the guard `if now == lastPolledTime then return end`
   (PLBeast.lua:408) was believed to throttle PollPackLeader to ~1Hz. In reality
-  GetTime() advances every frame, so the guard never trips and PollPackLeader()
-  runs EVERY FRAME (60-165+ Hz) — 60-165x the intended 1Hz and 6-16x the old 10Hz
-  ticker it replaced. Azor actually throttles via its Scheduler (C_Timer.After,
-  interval=1); PLBeast dropped the Scheduler and relied solely on the ineffective
-  GetTime equality guard.
-  Compounding: (a) CDMFrameHasAura (PLBeast.lua:288-297) does a full frame-tree DFS
-  every call for any unresolved beast frame (the 2 inactive beasts, almost always) —
-  now at framerate; (b) dprint args at PLBeast.lua:393-398 concatenate every poll
-  even with debug off.
-  Only burns CPU while the Pack Leader spec is active (root shown -> OnUpdate fires).
+  GetTime() advances every frame, so the guard never tripped and PollPackLeader()
+  ran EVERY FRAME (60-165+ Hz). Azor throttles via its Scheduler (interval=1);
+  PLBeast dropped the Scheduler and relied solely on the ineffective GetTime guard.
+resolution: |
+  Fixed in v1.0.1 (commit 98e8050): POLL_INTERVAL=1.0 + elapsed-threshold guard
+  `now - lastPolledTime < POLL_INTERVAL`; dprint block gated behind DB.debug.
+  Re-tested in-game via AddonProfiler on the 1.0.1 build: PLBeast Average 0.001ms,
+  Total 8.067ms, 0.03% of app CPU, 0x calls over 1ms, Spike Sum 0ms. Negligible.
 
 ### 7. Drag & scale persist (UI regression)
 expected: Drag the icon to a new position and change its scale, then /reload. Position and scale are retained.
-result: [pending]
+result: pass
+note: "No regression from the 05.1 engine rewrite or the v1.0.1 patch. Position/scale persist across /reload."
 
 ## Summary
 
 total: 7
-passed: 1
-issues: 2
-pending: 4
+passed: 7
+issues: 0
+pending: 0
 skipped: 0
 
 ## Gaps
