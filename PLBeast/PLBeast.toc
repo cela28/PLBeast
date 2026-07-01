@@ -2,7 +2,7 @@
 ## Title: PLBeast
 ## Notes: Displays the next Pack Leader beast.
 ## Author: cela
-## Version: 0.2.4
+## Version: 1.0.1
 ## SavedVariablesPerCharacter: PLBeastDB
 ## IconTexture: Interface\Icons\Ability_Hunter_AnimalCompanion
 
