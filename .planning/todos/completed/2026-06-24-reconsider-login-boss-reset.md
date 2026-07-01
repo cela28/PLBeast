@@ -37,3 +37,11 @@ correct immediately after login/boss pull without the reset. TRACK-03 is current
 superseded-pending by Phase 5.1 (see REQUIREMENTS.md note).
 
 Related: [[2026-06-23-event-driven-rotation-tracking]]
+
+---
+## Resolution (2026-07-01)
+DECIDED & DONE — After the 5.1 perf fix (1Hz POLL_INTERVAL) and in-game observation,
+user chose to RE-ADD the TRACK-03 reset: wyvern default anchor + reset-to-wyvern on
+fresh login (PLAYER_ENTERING_WORLD isInitialLogin) + boss pull (ENCOUNTER_START).
+Confirmed FPS-free (event-driven). Implemented in v1.0.1 (commit 598e2c3), verified
+in-game (06-UAT.md tests 2/4/5). Diverges from Azor D-09 by design; removable later.

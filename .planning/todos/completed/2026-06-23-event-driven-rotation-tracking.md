@@ -59,3 +59,9 @@ consumption — `:308`), which re-syncs to the game continuously. Consequences:
 This todo is now tracked as **Phase 5.1: Event-Driven Rotation Tracking** in ROADMAP.md
 (requirement PERF-01). Re-adding the login/boss reset later is a separate todo
 ([[2026-06-24-reconsider-login-boss-reset]]).
+
+---
+## Resolution (2026-07-01)
+DONE — Shipped as Phase 5.1 (event-driven CDM poll, self-correcting prediction).
+In-game verified 7/7 on the v1.0.1 build (06-UAT.md). Note: the initial 5.1 build had
+a per-frame poll bug (GetTime equality guard); fixed to true 1Hz in v1.0.1.

@@ -23,3 +23,7 @@ addon was a stale pre-reset 0.2.4 copy, indistinguishable by version from the cu
    AddOn list reliably identifies the running build. This becomes largely moot once the
    Phase 6 release pipeline tags + packages builds — consider folding a version-stamp step
    into that workflow.
+
+---
+## Resolution (2026-07-01)
+DONE — PLBeast.toc bumped 0.2.4 → 1.0.1 in v1.0.1 patch (quick 260701-txf, commit d87302f).
