@@ -115,7 +115,9 @@ local plBeast     = nil     -- current ready beast data entry; used for NEXT_BEA
 -- plHasCdBuff and plDirty removed: dead state (written but never read).
 -- Re-add when a consumer exists.
 
--- Phase 5.1: OnUpdate throttle for PollPackLeader (GetTime guard, ~1Hz)
+-- Phase 5.1: OnUpdate throttle for PollPackLeader — interval-threshold guard of POLL_INTERVAL seconds
+-- (~1Hz, matching Azor's Scheduler interval=1 cadence; enforced by elapsed-threshold comparison)
+local POLL_INTERVAL  = 1.0
 local lastPolledTime = -1
 
 -- CDM (Cooldown Manager) integration state.
@@ -390,12 +392,14 @@ local function PollPackLeader()
 		SetNextBeastId(nextId)
 	end
 
-	dprint(
-		"phase=" .. plPhase,
-		"next="  .. (BEAST_LABEL_BY_ID[nextBeastId] or "?"),
-		"ready=" .. tostring(nowReady),
-		"beast=" .. (nowBeast and nowBeast.name or "nil")
-	)
+	if DB and DB.debug then
+		dprint(
+			"phase=" .. plPhase,
+			"next="  .. (BEAST_LABEL_BY_ID[nextBeastId] or "?"),
+			"ready=" .. tostring(nowReady),
+			"beast=" .. (nowBeast and nowBeast.name or "nil")
+		)
+	end
 end
 
 ------------------------------------------------------------
@@ -405,7 +409,7 @@ end
 ------------------------------------------------------------
 local function OnUpdateHandler()
 	local now = GetTime()
-	if now == lastPolledTime then return end
+	if now - lastPolledTime < POLL_INTERVAL then return end
 	lastPolledTime = now
 	PollPackLeader()
 end
