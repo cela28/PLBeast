@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 06
-status: verified
-stopped_at: In-game UAT complete 7/7 on v1.0.1 build; v1.0.1 patch on dev, not yet released
-last_updated: "2026-06-29T11:47:30.270Z"
-last_activity: 2026-06-29
-last_activity_desc: Phase 06 complete
+status: released
+stopped_at: v1.0.1 released — tag pushed, release Action passed, zip verified (TOC 1.0.1, correct structure)
+last_updated: "2026-07-01T19:55:00Z"
+last_activity: 2026-07-01
+last_activity_desc: v1.0.1 released (poll CPU fix + wyvern anchor); in-game UAT 7/7
 progress:
   total_phases: 7
   completed_phases: 7
