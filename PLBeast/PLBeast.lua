@@ -22,6 +22,10 @@ local defaults = {
 	borderThickness = 1,
 	borderColor     = { r = 0, g = 0, b = 0, a = 1 },
 	locked          = false,
+	-- Phase 7: text display mode settings
+	textMode        = false,
+	fontSize        = 16,
+	textColors      = nil,
 }
 
 ------------------------------------------------------------
@@ -78,6 +82,22 @@ local BEAST_LABEL_BY_ID = {
 	boar   = "Boar",
 	bear   = "Bear",
 }
+
+-- Phase 7: default per-beast text colors (Okabe-Ito colorblind-safe palette, 0-1 normalized)
+local DEFAULT_BEAST_COLORS = {
+	wyvern = { r = 0.337, g = 0.706, b = 0.914 }, -- sky blue, hex 56B4E9
+	boar   = { r = 0.902, g = 0.624, b = 0.000 }, -- orange, hex E69F00
+	bear   = { r = 0.000, g = 0.620, b = 0.451 }, -- bluish green, hex 009E73
+}
+
+-- Phase 7: resolves the color for a given beast, preferring a user override
+-- from DB.textColors and falling back to DEFAULT_BEAST_COLORS.
+local function GetBeastColor(beastId)
+	local override = DB.textColors and DB.textColors[beastId]
+	local c = override or DEFAULT_BEAST_COLORS[beastId] or DEFAULT_BEAST_COLORS.boar
+	return c.r, c.g, c.b
+end
+
 -- Source: PackLeaderHelper.lua lines 29–31 (ICON_DRAGON_READY, ICON_PIG_READY, ICON_BEAR_READY)
 -- Three-beast subset; drives texture selection from nextBeastId.
 local ICON_FILE_BY_ID = {
@@ -133,6 +153,9 @@ local eventFrame
 -- Forward declaration: root is assigned inside CreateBeastIcon() at PLAYER_LOGIN.
 local root
 
+-- Phase 7: forward declaration for the custom Font object driving text mode font size.
+local textFont
+
 -- Phase 5 forward declarations: options frame and combat-deferred open flag.
 local optionsFrame
 local pendingOptionsOpenAfterCombat = false
@@ -183,6 +206,12 @@ local function SetNextBeastId(beastId)
 	-- Phase 4: push texture onto icon when frame exists (guard required: called before frame exists)
 	if root and root.tex then
 		root.tex:SetTexture(ICON_FILE_BY_ID[nextBeastId] or ICON_FILE_BY_ID.wyvern)
+	end
+	-- Phase 7: push text and color onto the text-mode label when frame exists
+	if root and root.label then
+		root.label:SetText(BEAST_LABEL_BY_ID[nextBeastId] or BEAST_LABEL_BY_ID.boar)
+		local r, g, b = GetBeastColor(nextBeastId)
+		root.label:SetTextColor(r, g, b)
 	end
 end
 
@@ -514,6 +543,34 @@ local function ApplyIconSettings()
 	end
 end
 
+-- Phase 7: toggles between icon-texture mode and text-label mode on the root frame.
+-- Never force-shows border edges directly; delegates to ApplyIconSettings so a
+-- user's borderThickness = 0 preference is respected when returning to icon mode.
+local function ApplyDisplayMode()
+	if not root then return end
+	local textMode = DB.textMode
+	if root.tex then
+		root.tex:SetShown(not textMode)
+	end
+	if root.label then
+		root.label:SetShown(textMode)
+	end
+	if textMode then
+		local edges = root.borderEdges
+		if edges then
+			for _, t in pairs(edges) do
+				t:Hide()
+			end
+		end
+		if root.label then
+			local r, g, b = GetBeastColor(nextBeastId)
+			root.label:SetTextColor(r, g, b)
+		end
+	else
+		ApplyIconSettings()
+	end
+end
+
 -- Source: adapted from PackLeaderHelper.lua lines 352–453 (CreateIcon)
 local function CreateBeastIcon()
 	local f = CreateFrame("Frame", "PLBeastFrame", UIParent)
@@ -530,6 +587,25 @@ local function CreateBeastIcon()
 	tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	tex:SetDesaturated(false)
 	f.tex = tex
+
+	-- Phase 7: custom font object driving the text-mode label, seeded from
+	-- GameFontNormalLarge so it inherits the locale-correct font file.
+	textFont = CreateFont("PLBeastTextFont")
+	local fontFile, _, fontFlags = GameFontNormalLarge:GetFont()
+	textFont:SetFont(fontFile, DB.fontSize or 16, fontFlags)
+
+	-- Phase 7: text-mode label, centered on the root frame; hidden by default
+	-- until ApplyDisplayMode() decides which widget to show.
+	local label = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	label:SetPoint("CENTER", f, "CENTER", 0, 0)
+	label:SetJustifyH("CENTER")
+	label:SetFontObject(textFont)
+	label:SetText(BEAST_LABEL_BY_ID[nextBeastId] or BEAST_LABEL_BY_ID.boar)
+	do
+		local r, g, b = GetBeastColor(nextBeastId)
+		label:SetTextColor(r, g, b)
+	end
+	f.label = label
 
 	-- Border: four solid edge textures
 	f.borderEdges = {
@@ -562,6 +638,7 @@ local function CreateBeastIcon()
 	-- Assign root before ApplyIconSettings
 	root = f
 	ApplyIconSettings()
+	ApplyDisplayMode()
 	return f
 end
 
@@ -744,6 +821,27 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		DB.offsetX         = tonumber(DB.offsetX)         or 0
 		DB.offsetY         = tonumber(DB.offsetY)         or 0
 		DB.borderThickness = tonumber(DB.borderThickness) or 1
+
+		-- Phase 7: coerce/validate text display mode fields
+		DB.fontSize = tonumber(DB.fontSize) or 16
+		if DB.textMode == nil then DB.textMode = false end
+		if DB.textColors ~= nil then
+			if type(DB.textColors) ~= "table" then
+				DB.textColors = nil
+			else
+				for beastId in pairs(BEAST_LABEL_BY_ID) do
+					local c = DB.textColors[beastId]
+					if c ~= nil then
+						if type(c) ~= "table"
+							or type(c.r) ~= "number"
+							or type(c.g) ~= "number"
+							or type(c.b) ~= "number" then
+							DB.textColors[beastId] = nil
+						end
+					end
+				end
+			end
+		end
 
 		-- Phase 5.1: Restore saved prediction from DB.plNextBeastId (with legacy migration)
 		RestoreState()
