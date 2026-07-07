@@ -701,6 +701,70 @@ local function CreateCheckbox(parent, label, getValue, setValue, xOffset, yOffse
 	return check
 end
 
+-- Phase 7: creates a small clickable color swatch + label for per-beast color
+-- customization. Opens the built-in ColorPickerFrame on click; saves to
+-- DB.textColors and live-updates root.label when the beast matches nextBeastId.
+local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(16, 16)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
+
+	local swatchTex = button:CreateTexture(nil, "OVERLAY")
+	swatchTex:SetAllPoints(button)
+	do
+		local r, g, b = GetBeastColor(beastId)
+		swatchTex:SetColorTexture(r, g, b)
+	end
+
+	local text = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	text:SetPoint("LEFT", button, "RIGHT", 6, 0)
+	text:SetJustifyH("LEFT")
+	text:SetText(label)
+
+	local function ApplyColor(r, g, b)
+		DB.textColors = DB.textColors or {}
+		DB.textColors[beastId] = { r = r, g = g, b = b }
+		swatchTex:SetColorTexture(r, g, b)
+		if root and root.label and nextBeastId == beastId then
+			root.label:SetTextColor(r, g, b)
+		end
+	end
+
+	button:SetScript("OnClick", function()
+		local origR, origG, origB = GetBeastColor(beastId)
+
+		local function OnColorChanged()
+			local r, g, b = ColorPickerFrame:GetColorRGB()
+			ApplyColor(r, g, b)
+		end
+
+		local function OnCancel()
+			ApplyColor(origR, origG, origB)
+		end
+
+		if ColorPickerFrame.SetupColorPickerAndShow then
+			-- 11.0+ single-table API
+			ColorPickerFrame:SetupColorPickerAndShow({
+				r = origR, g = origG, b = origB,
+				hasOpacity = false,
+				swatchFunc = OnColorChanged,
+				func = OnColorChanged,
+				cancelFunc = OnCancel,
+			})
+		else
+			-- Legacy pattern
+			ColorPickerFrame.hasOpacity = false
+			ColorPickerFrame.func = OnColorChanged
+			ColorPickerFrame.swatchFunc = OnColorChanged
+			ColorPickerFrame.cancelFunc = OnCancel
+			ColorPickerFrame:SetColorRGB(origR, origG, origB)
+			ShowUIPanel(ColorPickerFrame)
+		end
+	end)
+
+	return button
+end
+
 -- ToggleOptions() — lazy-creates and toggles the PLBeast options frame.
 local function ToggleOptions()
 	if InCombatLockdown and InCombatLockdown() then
@@ -712,7 +776,7 @@ local function ToggleOptions()
 
 	if not optionsFrame then
 		optionsFrame = CreateFrame("Frame", "PLBeastOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-		optionsFrame:SetSize(280, 300)
+		optionsFrame:SetSize(280, 460)
 		optionsFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 		optionsFrame:SetFrameStrata("DIALOG")
 		optionsFrame:SetMovable(true)
@@ -769,6 +833,36 @@ local function ToggleOptions()
 			end,
 			16, -236
 		)
+
+		CreateCheckbox(
+			optionsFrame,
+			L["Text Mode"],
+			function() return DB.textMode or false end,
+			function(checked)
+				DB.textMode = checked
+				ApplyDisplayMode()
+			end,
+			16, -268
+		)
+
+		CreateSlider(
+			optionsFrame,
+			L["Font Size"],
+			8, 32, 1,
+			function() return DB.fontSize or 16 end,
+			function(v)
+				DB.fontSize = v
+				if textFont then
+					local file, _, flags = textFont:GetFont()
+					textFont:SetFont(file, v, flags)
+				end
+			end,
+			-316
+		)
+
+		CreateColorSwatch(optionsFrame, L["Wyvern Color"], "wyvern", 20, -370)
+		CreateColorSwatch(optionsFrame, L["Boar Color"],   "boar",   20, -392)
+		CreateColorSwatch(optionsFrame, L["Bear Color"],   "bear",   20, -414)
 
 		optionsFrame:Hide()
 	end
