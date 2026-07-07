@@ -212,6 +212,12 @@ local function SetNextBeastId(beastId)
 		root.label:SetText(BEAST_LABEL_BY_ID[nextBeastId] or BEAST_LABEL_BY_ID.boar)
 		local r, g, b = GetBeastColor(nextBeastId)
 		root.label:SetTextColor(r, g, b)
+		-- Re-measure frame size when text mode is active (beast name width varies)
+		if DB.textMode then
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+		end
 	end
 end
 
@@ -565,8 +571,14 @@ local function ApplyDisplayMode()
 		if root.label then
 			local r, g, b = GetBeastColor(nextBeastId)
 			root.label:SetTextColor(r, g, b)
+			-- Resize frame to fit text content so drag/click area matches the label
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
 		end
 	else
+		-- Restore icon dimensions before applying icon settings
+		SetIconSize(DB.width or 40, DB.height or 40)
 		ApplyIconSettings()
 	end
 end
@@ -872,6 +884,12 @@ local function ToggleOptions()
 				if textFont then
 					local file, _, flags = textFont:GetFont()
 					textFont:SetFont(file, v, flags)
+				end
+				-- Re-measure frame size when text mode is active
+				if DB.textMode and root and root.label then
+					local textWidth  = root.label:GetStringWidth()  + 4
+					local textHeight = root.label:GetStringHeight() + 4
+					root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
 				end
 			end,
 			-316
