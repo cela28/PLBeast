@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 0
-status: Awaiting next milestone
-stopped_at: v1.0 milestone closed; v1.0.1 released and in-game UAT 7/7
-last_updated: "2026-07-01T19:59:30.935Z"
-last_activity: 2026-07-01
-last_activity_desc: Milestone v1.0 completed and archived
+current_phase: 07
+current_phase_name: text-display-mode
+status: verifying
+stopped_at: Completed 07-01-PLAN.md — text display mode implemented
+last_updated: "2026-07-07T10:32:33.262Z"
+last_activity: 2026-07-07
+last_activity_desc: Phase 07 execution started
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 8
+  completed_phases: 8
+  total_plans: 9
+  completed_plans: 9
   percent: 100
-current_phase_name: event-driven-rotation-tracking-drop-10hz-poll
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase_name: event-driven-rotation-tracking-drop-10hz-poll
 See: .planning/PROJECT.md (updated 2026-07-01)
 
 **Core value:** Accurately predict and display the next beast in the Pack Leader rotation
-**Current focus:** v1.0 shipped (v1.0.1). Planning next milestone.
+**Current focus:** Phase 07 — text-display-mode
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-01 — Milestone v1.0 completed and archived
+Phase: 07 (text-display-mode)
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-07-07 — Phase 07 execution started
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Last activity: 2026-07-01 — Milestone v1.0 completed and archived
 | Phase 04-icon-ui P04-02 | 30min | 3 tasks | 1 files |
 | Phase 05.1 P01 | 5min | 1 tasks | 2 files |
 | Phase 06 P01 | 26min | 3 tasks | 1 files |
+| Phase 07-text-display-mode P01 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Recent decisions affecting current work:
 - [Phase ?]: D-06 exercised: expanded .gitignore to match sibling addon patterns
 - [Phase ?]: D-08 followed: direct commits to main via git checkout, keeping .planning/.claude off public branch
 - [Phase ?]: v1.0.0 released: tag-triggered workflow validated end-to-end with correct zip structure
+- [Phase 07-text-display-mode]: ApplyDisplayMode delegates border restoration to ApplyIconSettings instead of unconditionally showing edges — Prevents regressing the borderThickness=0 setting when leaving text mode (flagged by 07-01-CHECK.md)
 
 ### Pending Todos
 
@@ -114,8 +116,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-01 (supersede
 
 ## Session Continuity
 
-Last session: 2026-07-01
-Stopped at: v1.0 milestone closed & archived. v1.0.1 released (poll CPU fix + wyvern anchor), in-game UAT 7/7. Ready for next milestone.
+Last session: 2026-07-07T10:32:33.251Z
+Stopped at: Completed 07-01-PLAN.md — text display mode implemented
 Resume file: None
 
 ## Operator Next Steps

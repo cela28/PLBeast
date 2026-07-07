@@ -25,7 +25,7 @@ on the v1.0.1 build.
 
 </details>
 
-- [ ] **Phase 7: Text Display Mode** - Colored text labels as alternative to icon; mode toggle, font size, persistence
+- [x] **Phase 7: Text Display Mode** - Colored text labels as alternative to icon; mode toggle, font size, persistence (completed 2026-07-07)
 
 ### Phase 7: Text Display Mode
 
@@ -41,11 +41,11 @@ on the v1.0.1 build.
   5. Text display settings (font size, enabled state) persist across sessions via SavedVariablesPerCharacter
   6. Text display respects the same visibility gating as icon mode (hidden when Pack Leader is not active)
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
-- [ ] 07-01-PLAN.md — Text display infrastructure + toggle controls (FontString, colors, options, slash command)
+- [x] 07-01-PLAN.md — Text display infrastructure + toggle controls (FontString, colors, options, slash command)
 
 ## Progress
 
