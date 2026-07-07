@@ -732,6 +732,11 @@ local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
 
 	button:SetScript("OnClick", function()
 		local origR, origG, origB = GetBeastColor(beastId)
+		-- Snapshot DB state: was there an explicit override before opening?
+		local origOverride = DB.textColors and DB.textColors[beastId]
+		local savedOverride = origOverride
+			and { r = origOverride.r, g = origOverride.g, b = origOverride.b }
+			or nil
 
 		local function OnColorChanged()
 			local r, g, b = ColorPickerFrame:GetColorRGB()
@@ -739,7 +744,19 @@ local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
 		end
 
 		local function OnCancel()
-			ApplyColor(origR, origG, origB)
+			-- Restore original DB state, not the resolved color
+			if savedOverride then
+				DB.textColors = DB.textColors or {}
+				DB.textColors[beastId] = savedOverride
+			else
+				if DB.textColors then
+					DB.textColors[beastId] = nil
+				end
+			end
+			swatchTex:SetColorTexture(origR, origG, origB)
+			if root and root.label and nextBeastId == beastId then
+				root.label:SetTextColor(origR, origG, origB)
+			end
 		end
 
 		if ColorPickerFrame.SetupColorPickerAndShow then
