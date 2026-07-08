@@ -16,4 +16,7 @@ PLBeastLocale = {
 	["Wyvern Color"] = "Wyvern Color",
 	["Boar Color"] = "Boar Color",
 	["Bear Color"] = "Bear Color",
+	["Outline"] = "Outline",
+	["None"] = "None",
+	["Thick Outline"] = "Thick Outline",
 }

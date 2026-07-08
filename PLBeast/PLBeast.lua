@@ -26,6 +26,7 @@ local defaults = {
 	textMode        = false,
 	fontSize        = 16,
 	textColors      = nil,
+	textOutline     = "",  -- allowed: "" (none), "OUTLINE", "THICKOUTLINE"
 }
 
 ------------------------------------------------------------
@@ -604,7 +605,7 @@ local function CreateBeastIcon()
 	-- GameFontNormalLarge so it inherits the locale-correct font file.
 	textFont = CreateFont("PLBeastTextFont")
 	local fontFile, _, fontFlags = GameFontNormalLarge:GetFont()
-	textFont:SetFont(fontFile, DB.fontSize or 16, fontFlags)
+	textFont:SetFont(fontFile, DB.fontSize or 16, DB.textOutline or "")
 
 	-- Phase 7: text-mode label, centered on the root frame; hidden by default
 	-- until ApplyDisplayMode() decides which widget to show.
@@ -954,6 +955,8 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		-- Phase 7: coerce/validate text display mode fields
 		DB.fontSize = tonumber(DB.fontSize) or 16
 		if DB.textMode == nil then DB.textMode = false end
+		local allowedOutlines = { [""] = true, ["OUTLINE"] = true, ["THICKOUTLINE"] = true }
+		if not allowedOutlines[DB.textOutline] then DB.textOutline = "" end
 		if DB.textColors ~= nil then
 			if type(DB.textColors) ~= "table" then
 				DB.textColors = nil
