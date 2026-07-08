@@ -58,4 +58,4 @@ Plans:
 | 5. Configuration            | v1.0      | 1/1            | Complete | 2026-06-21 |
 | 5.1 Event-Driven Tracking   | v1.0      | 1/1            | Complete | 2026-06-29 |
 | 6. Release Pipeline         | v1.0      | 1/1            | Complete | 2026-06-29 |
-| 7. Text Display Mode        | —         | 1/1            | Complete | 2026-07-07 |
+| 7. Text Display Mode        | —         | 1/1 | Complete    | 2026-07-07 |

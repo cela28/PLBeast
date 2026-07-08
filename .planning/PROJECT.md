@@ -25,6 +25,7 @@ Accurately predict and display the next beast in the Pack Leader rotation so the
 - ✓ Options panel / slash command for configuration — v1.0 (Phase 5: `/plbeast` combat-guarded options window)
 - ✓ Event-driven detection with negligible idle CPU — v1.0.1 (1Hz `POLL_INTERVAL` throttle; measured 0.001ms avg / 0.03% of app in-game)
 - ✓ Start-of-rotation anchor to wyvern + reset on login/boss pull — v1.0.1 (TRACK-03 re-added)
+- ✓ Text display mode: colored beast name instead of icon (TEXT-01..06) — Phase 7 (Okabe-Ito default colors, per-beast ColorPickerFrame, font-size slider, mode-conditional options relayout + text-outline cycle control; in-game UAT 9/9)
 
 ### Active
 
@@ -73,6 +74,8 @@ Accurately predict and display the next beast in the Pack Leader rotation so the
 | Event-driven poll, not 10Hz ticker (5.1) | Cut idle CPU | ⚠️ Revisit→Fixed — initial 5.1 build ran every frame (bad GetTime guard); v1.0.1 corrected to true 1Hz (0.03% CPU) |
 | Wyvern default anchor + login/boss reset (v1.0.1) | Rotation starts at wyvern; player expectation; validated behavior | ✓ Good — diverges from Azor D-09 by design, removable |
 | GitHub Releases only, tag-triggered | Minimal pipeline, no third-party packager | ✓ Good — v1.0.0/v1.0.1 shipped clean |
+| Text mode via dual-widget root frame (Phase 7) | `root.tex` + `root.label` coexist; `ApplyDisplayMode()` toggles one, delegating border restore to `ApplyIconSettings()` | ✓ Good — no borderThickness regression; UAT 9/9 |
+| Outline as cycle-button, not dropdown (Phase 7) | Least-risk on WoW 12.0.x — no Ace3/menu-API dependency | ✓ Good — None→Outline→Thick, live-applied |
 
 ## Evolution
 
@@ -92,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-01 after v1.0 milestone completion — full addon shipped and released (v1.0.0 → v1.0.1), in-game UAT 7/7. Detection is CDM-driven at 1Hz; wyvern anchor + login/boss reset restored.*
+*Last updated: 2026-07-08 after Phase 7 (Text Display Mode) — colored text alternative to the icon shipped with per-beast colors, font-size slider, outline control, and mode-conditional options relayout; in-game UAT 9/9. Detection remains CDM-driven at 1Hz.*
