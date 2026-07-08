@@ -733,6 +733,7 @@ local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
 	text:SetPoint("LEFT", button, "RIGHT", 6, 0)
 	text:SetJustifyH("LEFT")
 	text:SetText(label)
+	button.label = text
 
 	local function ApplyColor(r, g, b)
 		DB.textColors = DB.textColors or {}
@@ -795,6 +796,147 @@ local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
 	return button
 end
 
+-- Phase text-mode-ux: ordered list of the three supported font outline
+-- styles, mapping the DB-persisted flag string to its locale label key.
+local OUTLINE_STYLES = {
+	{ value = "",             labelKey = "None" },
+	{ value = "OUTLINE",      labelKey = "Outline" },
+	{ value = "THICKOUTLINE", labelKey = "Thick Outline" },
+}
+
+-- Creates a small cycle-button (no dropdown/menu-API dependency) that
+-- advances DB.textOutline through None -> Outline -> Thick Outline -> None
+-- on each click, applying the flag live to PLBeastTextFont.
+local function CreateOutlineControl(parent, xOffset, yOffset)
+	local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+	button:SetSize(150, 22)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
+
+	local function CurrentIndex()
+		for i, style in ipairs(OUTLINE_STYLES) do
+			if style.value == (DB.textOutline or "") then
+				return i
+			end
+		end
+		return 1
+	end
+
+	local function SetOutlineText()
+		local style = OUTLINE_STYLES[CurrentIndex()]
+		button:SetText(L["Outline"] .. ": " .. L[style.labelKey])
+	end
+
+	button:SetScript("OnClick", function()
+		local nextIndex = CurrentIndex() + 1
+		if nextIndex > #OUTLINE_STYLES then nextIndex = 1 end
+		DB.textOutline = OUTLINE_STYLES[nextIndex].value
+		if textFont then
+			local file, size = textFont:GetFont()
+			textFont:SetFont(file, size, DB.textOutline)
+		end
+		-- Re-measure frame size when text mode is active (mirrors Font Size slider)
+		if DB.textMode and root and root.label then
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+		end
+		SetOutlineText()
+	end)
+
+	SetOutlineText()
+	return button
+end
+
+------------------------------------------------------------
+-- Options Frame Layout
+------------------------------------------------------------
+-- Phase text-mode-ux: CreateCheckbox/.text, CreateSlider/.valText, and
+-- CreateColorSwatch/.label are all parented to the OPTIONS FRAME (not to the
+-- widget itself), so calling SetShown() on the widget alone leaves the label
+-- floating as an orphan. This helper hides/shows the widget and any of its
+-- known parent-owned label fontstrings together.
+local function SetControlShown(w, shown)
+	if not w then return end
+	w:SetShown(shown)
+	if w.valText then w.valText:SetShown(shown) end
+	if w.text then w.text:SetShown(shown) end
+	if w.label then w.label:SetShown(shown) end
+end
+
+-- RelayoutOptions() — repositions and shows/hides every options-frame
+-- control based on DB.textMode. Called on initial build, every subsequent
+-- open, and immediately after the Text Mode checkbox is toggled, so the
+-- panel never displays a stale mix of icon-mode and text-mode controls.
+local function RelayoutOptions(frame)
+	if not frame or not frame.controls then return end
+	local c = frame.controls
+	local textMode = DB.textMode
+	local y = -40
+
+	-- Always on top, in both modes.
+	SetControlShown(c.textMode, true)
+	c.textMode:ClearAllPoints()
+	c.textMode:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y)
+	y = y - 30
+
+	SetControlShown(c.lock, true)
+	c.lock:ClearAllPoints()
+	c.lock:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y)
+	y = y - 30
+
+	if textMode then
+		SetControlShown(c.width, false)
+		SetControlShown(c.height, false)
+		SetControlShown(c.border, false)
+
+		SetControlShown(c.fontSize, true)
+		c.fontSize:ClearAllPoints()
+		c.fontSize:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.outline, true)
+		c.outline:ClearAllPoints()
+		c.outline:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 30
+
+		SetControlShown(c.wyvern, true)
+		c.wyvern:ClearAllPoints()
+		c.wyvern:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+
+		SetControlShown(c.boar, true)
+		c.boar:ClearAllPoints()
+		c.boar:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+
+		SetControlShown(c.bear, true)
+		c.bear:ClearAllPoints()
+		c.bear:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+	else
+		SetControlShown(c.fontSize, false)
+		SetControlShown(c.outline, false)
+		SetControlShown(c.wyvern, false)
+		SetControlShown(c.boar, false)
+		SetControlShown(c.bear, false)
+
+		SetControlShown(c.width, true)
+		c.width:ClearAllPoints()
+		c.width:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.height, true)
+		c.height:ClearAllPoints()
+		c.height:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.border, true)
+		c.border:ClearAllPoints()
+		c.border:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+	end
+end
+
 -- ToggleOptions() — lazy-creates and toggles the PLBeast options frame.
 local function ToggleOptions()
 	if InCombatLockdown and InCombatLockdown() then
@@ -815,12 +957,13 @@ local function ToggleOptions()
 		optionsFrame:SetScript("OnDragStart", optionsFrame.StartMoving)
 		optionsFrame:SetScript("OnDragStop", optionsFrame.StopMovingOrSizing)
 		optionsFrame:SetClampedToScreen(true)
+		optionsFrame.controls = {}
 
 		optionsFrame.title = optionsFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		optionsFrame.title:SetPoint("CENTER", optionsFrame.TitleBg, "CENTER", 0, 0)
 		optionsFrame.title:SetText(L["PLBeast Options"])
 
-		CreateSlider(
+		optionsFrame.controls.width = CreateSlider(
 			optionsFrame,
 			L["Width"],
 			16, 128, 1,
@@ -831,7 +974,7 @@ local function ToggleOptions()
 			-48
 		)
 
-		CreateSlider(
+		optionsFrame.controls.height = CreateSlider(
 			optionsFrame,
 			L["Height"],
 			16, 128, 1,
@@ -842,7 +985,7 @@ local function ToggleOptions()
 			-96
 		)
 
-		CreateSlider(
+		optionsFrame.controls.border = CreateSlider(
 			optionsFrame,
 			L["Border Thickness"],
 			0, 8, 1,
@@ -854,7 +997,7 @@ local function ToggleOptions()
 			-144
 		)
 
-		CreateCheckbox(
+		optionsFrame.controls.lock = CreateCheckbox(
 			optionsFrame,
 			L["Lock position"],
 			function() return DB.locked or false end,
@@ -864,18 +1007,19 @@ local function ToggleOptions()
 			16, -236
 		)
 
-		CreateCheckbox(
+		optionsFrame.controls.textMode = CreateCheckbox(
 			optionsFrame,
 			L["Text Mode"],
 			function() return DB.textMode or false end,
 			function(checked)
 				DB.textMode = checked
 				ApplyDisplayMode()
+				RelayoutOptions(optionsFrame)
 			end,
 			16, -268
 		)
 
-		CreateSlider(
+		optionsFrame.controls.fontSize = CreateSlider(
 			optionsFrame,
 			L["Font Size"],
 			8, 32, 1,
@@ -896,16 +1040,20 @@ local function ToggleOptions()
 			-316
 		)
 
-		CreateColorSwatch(optionsFrame, L["Wyvern Color"], "wyvern", 20, -370)
-		CreateColorSwatch(optionsFrame, L["Boar Color"],   "boar",   20, -392)
-		CreateColorSwatch(optionsFrame, L["Bear Color"],   "bear",   20, -414)
+		optionsFrame.controls.outline = CreateOutlineControl(optionsFrame, 20, -350)
 
+		optionsFrame.controls.wyvern = CreateColorSwatch(optionsFrame, L["Wyvern Color"], "wyvern", 20, -370)
+		optionsFrame.controls.boar   = CreateColorSwatch(optionsFrame, L["Boar Color"],   "boar",   20, -392)
+		optionsFrame.controls.bear   = CreateColorSwatch(optionsFrame, L["Bear Color"],   "bear",   20, -414)
+
+		RelayoutOptions(optionsFrame)
 		optionsFrame:Hide()
 	end
 
 	if optionsFrame:IsShown() then
 		optionsFrame:Hide()
 	else
+		RelayoutOptions(optionsFrame)
 		optionsFrame:Show()
 	end
 end
