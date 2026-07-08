@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 Phase: 07 (text-display-mode)
 Plan: 1 of 1
 Status: Phase complete — ready for verification
-Last activity: 2026-07-07 — Phase 07 execution started
+Last activity: 2026-07-08 — Completed quick task 260709-1ir: text-mode options UX
 
 ## Performance Metrics
 
@@ -92,6 +92,7 @@ Recent decisions affecting current work:
 |---|-------------|------|--------|-----------|
 | 260622-1or | Reset next-beast to wyvern on relog + boss pull (ENCOUNTER_START); /reload still preserves prediction | 2026-06-21 | 5d59581 | [260622-1or-default-next-beast-to-wyvern-on-login-re](./quick/260622-1or-default-next-beast-to-wyvern-on-login-re/) |
 | 260701-txf | v1.0.1 patch: fix per-frame poll CPU bug (POLL_INTERVAL 1Hz throttle) + restore wyvern default anchor & login/boss-pull reset (TRACK-03) | 2026-07-01 | d87302f | [260701-txf-v1-0-1-patch-fix-per-frame-poll-cpu-bug-](./quick/260701-txf-v1-0-1-patch-fix-per-frame-poll-cpu-bug-/) |
+| 260709-1ir | Text-mode options UX: Text Mode checkbox to top, mode-conditional option visibility, and text outline control (None/Outline/Thick) | 2026-07-08 | 5ce8302 | [260709-1ir-text-mode-options-ux-text-mode-checkbox-](./quick/260709-1ir-text-mode-options-ux-text-mode-checkbox-/) |
 
 ### Roadmap Evolution
 
