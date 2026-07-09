@@ -11,7 +11,9 @@ findings:
   warning: 2
   info: 4
   total: 6
-status: issues_found
+  warning_fixed: 2
+  warning_open: 0
+status: warnings_fixed
 ---
 
 # Phase 7: Code Review Report
@@ -58,7 +60,11 @@ maintainability info items remain.
 
 ## Warnings
 
-### WR-01: `DB.fontSize` is coerced but never range-clamped on load
+### WR-01: `DB.fontSize` is coerced but never range-clamped on load  — FIXED (commit 50e545d)
+
+**Resolution:** Load-time coercion now clamps to the slider's `[8, 32]` range:
+`DB.fontSize = math.max(8, math.min(32, tonumber(DB.fontSize) or 16))`. Width/height/
+borderThickness clamps were intentionally left out of scope for this fix.
 
 **File:** `PLBeast/PLBeast.lua:1104`
 **Issue:** The load-time coercion is `DB.fontSize = tonumber(DB.fontSize) or 16`. Unlike the
@@ -77,7 +83,12 @@ DB.fontSize = math.max(8, math.min(32, tonumber(DB.fontSize) or 16))
 ```
 Consider clamping `width`/`height`/`borderThickness` to their slider ranges too.
 
-### WR-02: Outline cycle button renders the confusing label "Outline: Outline"
+### WR-02: Outline cycle button renders the confusing label "Outline: Outline"  — FIXED (commit 5e8b3ab)
+
+**Resolution:** The `OUTLINE` style's `labelKey` was renamed from `"Outline"` to
+`"Thin Outline"` (new key added to `Locales/enUS.lua`). The "Outline: " prefix was kept
+because the control has no adjacent text label, so the button now reads
+"Outline: None" / "Outline: Thin Outline" / "Outline: Thick Outline" — all three distinct.
 
 **File:** `PLBeast/PLBeast.lua:801-805, 826`
 **Issue:** `SetOutlineText` builds the button caption as
