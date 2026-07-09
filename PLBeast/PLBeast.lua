@@ -800,7 +800,7 @@ end
 -- styles, mapping the DB-persisted flag string to its locale label key.
 local OUTLINE_STYLES = {
 	{ value = "",             labelKey = "None" },
-	{ value = "OUTLINE",      labelKey = "Outline" },
+	{ value = "OUTLINE",      labelKey = "Thin Outline" },
 	{ value = "THICKOUTLINE", labelKey = "Thick Outline" },
 }
 

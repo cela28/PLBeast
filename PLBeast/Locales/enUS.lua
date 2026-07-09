@@ -18,5 +18,6 @@ PLBeastLocale = {
 	["Bear Color"] = "Bear Color",
 	["Outline"] = "Outline",
 	["None"] = "None",
+	["Thin Outline"] = "Thin Outline",
 	["Thick Outline"] = "Thick Outline",
 }
