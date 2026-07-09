@@ -22,6 +22,11 @@ local defaults = {
 	borderThickness = 1,
 	borderColor     = { r = 0, g = 0, b = 0, a = 1 },
 	locked          = false,
+	-- Phase 7: text display mode settings
+	textMode        = false,
+	fontSize        = 16,
+	textColors      = nil,
+	textOutline     = "",  -- allowed: "" (none), "OUTLINE", "THICKOUTLINE"
 }
 
 ------------------------------------------------------------
@@ -78,6 +83,22 @@ local BEAST_LABEL_BY_ID = {
 	boar   = "Boar",
 	bear   = "Bear",
 }
+
+-- Phase 7: default per-beast text colors (Okabe-Ito colorblind-safe palette, 0-1 normalized)
+local DEFAULT_BEAST_COLORS = {
+	wyvern = { r = 0.337, g = 0.706, b = 0.914 }, -- sky blue, hex 56B4E9
+	boar   = { r = 0.902, g = 0.624, b = 0.000 }, -- orange, hex E69F00
+	bear   = { r = 0.000, g = 0.620, b = 0.451 }, -- bluish green, hex 009E73
+}
+
+-- Phase 7: resolves the color for a given beast, preferring a user override
+-- from DB.textColors and falling back to DEFAULT_BEAST_COLORS.
+local function GetBeastColor(beastId)
+	local override = DB.textColors and DB.textColors[beastId]
+	local c = override or DEFAULT_BEAST_COLORS[beastId] or DEFAULT_BEAST_COLORS.boar
+	return c.r, c.g, c.b
+end
+
 -- Source: PackLeaderHelper.lua lines 29–31 (ICON_DRAGON_READY, ICON_PIG_READY, ICON_BEAR_READY)
 -- Three-beast subset; drives texture selection from nextBeastId.
 local ICON_FILE_BY_ID = {
@@ -133,6 +154,9 @@ local eventFrame
 -- Forward declaration: root is assigned inside CreateBeastIcon() at PLAYER_LOGIN.
 local root
 
+-- Phase 7: forward declaration for the custom Font object driving text mode font size.
+local textFont
+
 -- Phase 5 forward declarations: options frame and combat-deferred open flag.
 local optionsFrame
 local pendingOptionsOpenAfterCombat = false
@@ -183,6 +207,18 @@ local function SetNextBeastId(beastId)
 	-- Phase 4: push texture onto icon when frame exists (guard required: called before frame exists)
 	if root and root.tex then
 		root.tex:SetTexture(ICON_FILE_BY_ID[nextBeastId] or ICON_FILE_BY_ID.wyvern)
+	end
+	-- Phase 7: push text and color onto the text-mode label when frame exists
+	if root and root.label then
+		root.label:SetText(BEAST_LABEL_BY_ID[nextBeastId] or BEAST_LABEL_BY_ID.boar)
+		local r, g, b = GetBeastColor(nextBeastId)
+		root.label:SetTextColor(r, g, b)
+		-- Re-measure frame size when text mode is active (beast name width varies)
+		if DB.textMode then
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+		end
 	end
 end
 
@@ -514,6 +550,40 @@ local function ApplyIconSettings()
 	end
 end
 
+-- Phase 7: toggles between icon-texture mode and text-label mode on the root frame.
+-- Never force-shows border edges directly; delegates to ApplyIconSettings so a
+-- user's borderThickness = 0 preference is respected when returning to icon mode.
+local function ApplyDisplayMode()
+	if not root then return end
+	local textMode = DB.textMode
+	if root.tex then
+		root.tex:SetShown(not textMode)
+	end
+	if root.label then
+		root.label:SetShown(textMode)
+	end
+	if textMode then
+		local edges = root.borderEdges
+		if edges then
+			for _, t in pairs(edges) do
+				t:Hide()
+			end
+		end
+		if root.label then
+			local r, g, b = GetBeastColor(nextBeastId)
+			root.label:SetTextColor(r, g, b)
+			-- Resize frame to fit text content so drag/click area matches the label
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+		end
+	else
+		-- Restore icon dimensions before applying icon settings
+		SetIconSize(DB.width or 40, DB.height or 40)
+		ApplyIconSettings()
+	end
+end
+
 -- Source: adapted from PackLeaderHelper.lua lines 352–453 (CreateIcon)
 local function CreateBeastIcon()
 	local f = CreateFrame("Frame", "PLBeastFrame", UIParent)
@@ -530,6 +600,25 @@ local function CreateBeastIcon()
 	tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	tex:SetDesaturated(false)
 	f.tex = tex
+
+	-- Phase 7: custom font object driving the text-mode label, seeded from
+	-- GameFontNormalLarge so it inherits the locale-correct font file.
+	textFont = CreateFont("PLBeastTextFont")
+	local fontFile, _, fontFlags = GameFontNormalLarge:GetFont()
+	textFont:SetFont(fontFile, DB.fontSize or 16, DB.textOutline or "")
+
+	-- Phase 7: text-mode label, centered on the root frame; hidden by default
+	-- until ApplyDisplayMode() decides which widget to show.
+	local label = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	label:SetPoint("CENTER", f, "CENTER", 0, 0)
+	label:SetJustifyH("CENTER")
+	label:SetFontObject(textFont)
+	label:SetText(BEAST_LABEL_BY_ID[nextBeastId] or BEAST_LABEL_BY_ID.boar)
+	do
+		local r, g, b = GetBeastColor(nextBeastId)
+		label:SetTextColor(r, g, b)
+	end
+	f.label = label
 
 	-- Border: four solid edge textures
 	f.borderEdges = {
@@ -562,6 +651,7 @@ local function CreateBeastIcon()
 	-- Assign root before ApplyIconSettings
 	root = f
 	ApplyIconSettings()
+	ApplyDisplayMode()
 	return f
 end
 
@@ -624,6 +714,229 @@ local function CreateCheckbox(parent, label, getValue, setValue, xOffset, yOffse
 	return check
 end
 
+-- Phase 7: creates a small clickable color swatch + label for per-beast color
+-- customization. Opens the built-in ColorPickerFrame on click; saves to
+-- DB.textColors and live-updates root.label when the beast matches nextBeastId.
+local function CreateColorSwatch(parent, label, beastId, xOffset, yOffset)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(16, 16)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
+
+	local swatchTex = button:CreateTexture(nil, "OVERLAY")
+	swatchTex:SetAllPoints(button)
+	do
+		local r, g, b = GetBeastColor(beastId)
+		swatchTex:SetColorTexture(r, g, b)
+	end
+
+	local text = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	text:SetPoint("LEFT", button, "RIGHT", 6, 0)
+	text:SetJustifyH("LEFT")
+	text:SetText(label)
+	button.label = text
+
+	local function ApplyColor(r, g, b)
+		DB.textColors = DB.textColors or {}
+		DB.textColors[beastId] = { r = r, g = g, b = b }
+		swatchTex:SetColorTexture(r, g, b)
+		if root and root.label and nextBeastId == beastId then
+			root.label:SetTextColor(r, g, b)
+		end
+	end
+
+	button:SetScript("OnClick", function()
+		local origR, origG, origB = GetBeastColor(beastId)
+		-- Snapshot DB state: was there an explicit override before opening?
+		local origOverride = DB.textColors and DB.textColors[beastId]
+		local savedOverride = origOverride
+			and { r = origOverride.r, g = origOverride.g, b = origOverride.b }
+			or nil
+
+		local function OnColorChanged()
+			local r, g, b = ColorPickerFrame:GetColorRGB()
+			ApplyColor(r, g, b)
+		end
+
+		local function OnCancel()
+			-- Restore original DB state, not the resolved color
+			if savedOverride then
+				DB.textColors = DB.textColors or {}
+				DB.textColors[beastId] = savedOverride
+			else
+				if DB.textColors then
+					DB.textColors[beastId] = nil
+				end
+			end
+			swatchTex:SetColorTexture(origR, origG, origB)
+			if root and root.label and nextBeastId == beastId then
+				root.label:SetTextColor(origR, origG, origB)
+			end
+		end
+
+		if ColorPickerFrame.SetupColorPickerAndShow then
+			-- 11.0+ single-table API
+			ColorPickerFrame:SetupColorPickerAndShow({
+				r = origR, g = origG, b = origB,
+				hasOpacity = false,
+				swatchFunc = OnColorChanged,
+				func = OnColorChanged,
+				cancelFunc = OnCancel,
+			})
+		else
+			-- Legacy pattern
+			ColorPickerFrame.hasOpacity = false
+			ColorPickerFrame.func = OnColorChanged
+			ColorPickerFrame.swatchFunc = OnColorChanged
+			ColorPickerFrame.cancelFunc = OnCancel
+			ColorPickerFrame:SetColorRGB(origR, origG, origB)
+			ShowUIPanel(ColorPickerFrame)
+		end
+	end)
+
+	return button
+end
+
+-- Phase text-mode-ux: ordered list of the three supported font outline
+-- styles, mapping the DB-persisted flag string to its locale label key.
+local OUTLINE_STYLES = {
+	{ value = "",             labelKey = "None" },
+	{ value = "OUTLINE",      labelKey = "Thin Outline" },
+	{ value = "THICKOUTLINE", labelKey = "Thick Outline" },
+}
+
+-- Creates a small cycle-button (no dropdown/menu-API dependency) that
+-- advances DB.textOutline through None -> Outline -> Thick Outline -> None
+-- on each click, applying the flag live to PLBeastTextFont.
+local function CreateOutlineControl(parent, xOffset, yOffset)
+	local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+	button:SetSize(150, 22)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
+
+	local function CurrentIndex()
+		for i, style in ipairs(OUTLINE_STYLES) do
+			if style.value == (DB.textOutline or "") then
+				return i
+			end
+		end
+		return 1
+	end
+
+	local function SetOutlineText()
+		local style = OUTLINE_STYLES[CurrentIndex()]
+		button:SetText(L["Outline"] .. ": " .. L[style.labelKey])
+	end
+
+	button:SetScript("OnClick", function()
+		local nextIndex = CurrentIndex() + 1
+		if nextIndex > #OUTLINE_STYLES then nextIndex = 1 end
+		DB.textOutline = OUTLINE_STYLES[nextIndex].value
+		if textFont then
+			local file, size = textFont:GetFont()
+			textFont:SetFont(file, size, DB.textOutline)
+		end
+		-- Re-measure frame size when text mode is active (mirrors Font Size slider)
+		if DB.textMode and root and root.label then
+			local textWidth  = root.label:GetStringWidth()  + 4
+			local textHeight = root.label:GetStringHeight() + 4
+			root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+		end
+		SetOutlineText()
+	end)
+
+	SetOutlineText()
+	return button
+end
+
+------------------------------------------------------------
+-- Options Frame Layout
+------------------------------------------------------------
+-- Phase text-mode-ux: CreateCheckbox/.text, CreateSlider/.valText, and
+-- CreateColorSwatch/.label are all parented to the OPTIONS FRAME (not to the
+-- widget itself), so calling SetShown() on the widget alone leaves the label
+-- floating as an orphan. This helper hides/shows the widget and any of its
+-- known parent-owned label fontstrings together.
+local function SetControlShown(w, shown)
+	if not w then return end
+	w:SetShown(shown)
+	if w.valText then w.valText:SetShown(shown) end
+	if w.text then w.text:SetShown(shown) end
+	if w.label then w.label:SetShown(shown) end
+end
+
+-- RelayoutOptions() — repositions and shows/hides every options-frame
+-- control based on DB.textMode. Called on initial build, every subsequent
+-- open, and immediately after the Text Mode checkbox is toggled, so the
+-- panel never displays a stale mix of icon-mode and text-mode controls.
+local function RelayoutOptions(frame)
+	if not frame or not frame.controls then return end
+	local c = frame.controls
+	local textMode = DB.textMode
+	local y = -40
+
+	-- Always on top, in both modes.
+	SetControlShown(c.textMode, true)
+	c.textMode:ClearAllPoints()
+	c.textMode:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y)
+	y = y - 30
+
+	SetControlShown(c.lock, true)
+	c.lock:ClearAllPoints()
+	c.lock:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y)
+	y = y - 30
+
+	if textMode then
+		SetControlShown(c.width, false)
+		SetControlShown(c.height, false)
+		SetControlShown(c.border, false)
+
+		SetControlShown(c.fontSize, true)
+		c.fontSize:ClearAllPoints()
+		c.fontSize:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.outline, true)
+		c.outline:ClearAllPoints()
+		c.outline:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 30
+
+		SetControlShown(c.wyvern, true)
+		c.wyvern:ClearAllPoints()
+		c.wyvern:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+
+		SetControlShown(c.boar, true)
+		c.boar:ClearAllPoints()
+		c.boar:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+
+		SetControlShown(c.bear, true)
+		c.bear:ClearAllPoints()
+		c.bear:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
+		y = y - 24
+	else
+		SetControlShown(c.fontSize, false)
+		SetControlShown(c.outline, false)
+		SetControlShown(c.wyvern, false)
+		SetControlShown(c.boar, false)
+		SetControlShown(c.bear, false)
+
+		SetControlShown(c.width, true)
+		c.width:ClearAllPoints()
+		c.width:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.height, true)
+		c.height:ClearAllPoints()
+		c.height:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+
+		SetControlShown(c.border, true)
+		c.border:ClearAllPoints()
+		c.border:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		y = y - 48
+	end
+end
+
 -- ToggleOptions() — lazy-creates and toggles the PLBeast options frame.
 local function ToggleOptions()
 	if InCombatLockdown and InCombatLockdown() then
@@ -635,7 +948,7 @@ local function ToggleOptions()
 
 	if not optionsFrame then
 		optionsFrame = CreateFrame("Frame", "PLBeastOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-		optionsFrame:SetSize(280, 300)
+		optionsFrame:SetSize(280, 460)
 		optionsFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 		optionsFrame:SetFrameStrata("DIALOG")
 		optionsFrame:SetMovable(true)
@@ -644,12 +957,13 @@ local function ToggleOptions()
 		optionsFrame:SetScript("OnDragStart", optionsFrame.StartMoving)
 		optionsFrame:SetScript("OnDragStop", optionsFrame.StopMovingOrSizing)
 		optionsFrame:SetClampedToScreen(true)
+		optionsFrame.controls = {}
 
 		optionsFrame.title = optionsFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		optionsFrame.title:SetPoint("CENTER", optionsFrame.TitleBg, "CENTER", 0, 0)
 		optionsFrame.title:SetText(L["PLBeast Options"])
 
-		CreateSlider(
+		optionsFrame.controls.width = CreateSlider(
 			optionsFrame,
 			L["Width"],
 			16, 128, 1,
@@ -660,7 +974,7 @@ local function ToggleOptions()
 			-48
 		)
 
-		CreateSlider(
+		optionsFrame.controls.height = CreateSlider(
 			optionsFrame,
 			L["Height"],
 			16, 128, 1,
@@ -671,7 +985,7 @@ local function ToggleOptions()
 			-96
 		)
 
-		CreateSlider(
+		optionsFrame.controls.border = CreateSlider(
 			optionsFrame,
 			L["Border Thickness"],
 			0, 8, 1,
@@ -683,7 +997,7 @@ local function ToggleOptions()
 			-144
 		)
 
-		CreateCheckbox(
+		optionsFrame.controls.lock = CreateCheckbox(
 			optionsFrame,
 			L["Lock position"],
 			function() return DB.locked or false end,
@@ -693,12 +1007,53 @@ local function ToggleOptions()
 			16, -236
 		)
 
+		optionsFrame.controls.textMode = CreateCheckbox(
+			optionsFrame,
+			L["Text Mode"],
+			function() return DB.textMode or false end,
+			function(checked)
+				DB.textMode = checked
+				ApplyDisplayMode()
+				RelayoutOptions(optionsFrame)
+			end,
+			16, -268
+		)
+
+		optionsFrame.controls.fontSize = CreateSlider(
+			optionsFrame,
+			L["Font Size"],
+			8, 32, 1,
+			function() return DB.fontSize or 16 end,
+			function(v)
+				DB.fontSize = v
+				if textFont then
+					local file, _, flags = textFont:GetFont()
+					textFont:SetFont(file, v, flags)
+				end
+				-- Re-measure frame size when text mode is active
+				if DB.textMode and root and root.label then
+					local textWidth  = root.label:GetStringWidth()  + 4
+					local textHeight = root.label:GetStringHeight() + 4
+					root:SetSize(math.max(textWidth, 20), math.max(textHeight, 16))
+				end
+			end,
+			-316
+		)
+
+		optionsFrame.controls.outline = CreateOutlineControl(optionsFrame, 20, -350)
+
+		optionsFrame.controls.wyvern = CreateColorSwatch(optionsFrame, L["Wyvern Color"], "wyvern", 20, -370)
+		optionsFrame.controls.boar   = CreateColorSwatch(optionsFrame, L["Boar Color"],   "boar",   20, -392)
+		optionsFrame.controls.bear   = CreateColorSwatch(optionsFrame, L["Bear Color"],   "bear",   20, -414)
+
+		RelayoutOptions(optionsFrame)
 		optionsFrame:Hide()
 	end
 
 	if optionsFrame:IsShown() then
 		optionsFrame:Hide()
 	else
+		RelayoutOptions(optionsFrame)
 		optionsFrame:Show()
 	end
 end
@@ -744,6 +1099,31 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		DB.offsetX         = tonumber(DB.offsetX)         or 0
 		DB.offsetY         = tonumber(DB.offsetY)         or 0
 		DB.borderThickness = tonumber(DB.borderThickness) or 1
+
+		-- Phase 7: coerce/validate text display mode fields
+		-- clamp to the same bounds the Font Size slider enforces (8-32) so a
+		-- corrupt/hand-edited save cannot push an out-of-range size into SetFont
+		DB.fontSize = math.max(8, math.min(32, tonumber(DB.fontSize) or 16))
+		if DB.textMode == nil then DB.textMode = false end
+		local allowedOutlines = { [""] = true, ["OUTLINE"] = true, ["THICKOUTLINE"] = true }
+		if not allowedOutlines[DB.textOutline] then DB.textOutline = "" end
+		if DB.textColors ~= nil then
+			if type(DB.textColors) ~= "table" then
+				DB.textColors = nil
+			else
+				for beastId in pairs(BEAST_LABEL_BY_ID) do
+					local c = DB.textColors[beastId]
+					if c ~= nil then
+						if type(c) ~= "table"
+							or type(c.r) ~= "number"
+							or type(c.g) ~= "number"
+							or type(c.b) ~= "number" then
+							DB.textColors[beastId] = nil
+						end
+					end
+				end
+			end
+		end
 
 		-- Phase 5.1: Restore saved prediction from DB.plNextBeastId (with legacy migration)
 		RestoreState()

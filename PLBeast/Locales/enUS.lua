@@ -10,4 +10,14 @@ PLBeastLocale = {
 	["Border Thickness"] = "Border Thickness",
 	["Lock position"] = "Lock position",
 	["PLBeast. /plbeast | debug | reset"] = "PLBeast. /plbeast | debug | reset",
+	-- Phase 7 CFG UI labels: text display mode
+	["Text Mode"] = "Text Mode",
+	["Font Size"] = "Font Size",
+	["Wyvern Color"] = "Wyvern Color",
+	["Boar Color"] = "Boar Color",
+	["Bear Color"] = "Bear Color",
+	["Outline"] = "Outline",
+	["None"] = "None",
+	["Thin Outline"] = "Thin Outline",
+	["Thick Outline"] = "Thick Outline",
 }
