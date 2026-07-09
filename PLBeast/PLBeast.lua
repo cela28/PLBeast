@@ -1101,7 +1101,9 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		DB.borderThickness = tonumber(DB.borderThickness) or 1
 
 		-- Phase 7: coerce/validate text display mode fields
-		DB.fontSize = tonumber(DB.fontSize) or 16
+		-- clamp to the same bounds the Font Size slider enforces (8-32) so a
+		-- corrupt/hand-edited save cannot push an out-of-range size into SetFont
+		DB.fontSize = math.max(8, math.min(32, tonumber(DB.fontSize) or 16))
 		if DB.textMode == nil then DB.textMode = false end
 		local allowedOutlines = { [""] = true, ["OUTLINE"] = true, ["THICKOUTLINE"] = true }
 		if not allowedOutlines[DB.textOutline] then DB.textOutline = "" end
