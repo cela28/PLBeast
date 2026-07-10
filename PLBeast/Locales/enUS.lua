@@ -7,7 +7,6 @@ PLBeastLocale = {
 	["PLBeast Options"] = "PLBeast Options",
 	["Width"] = "Width",
 	["Height"] = "Height",
-	["Border Thickness"] = "Border Thickness",
 	["Lock position"] = "Lock position",
 	["PLBeast. /plbeast | debug | reset"] = "PLBeast. /plbeast | debug | reset",
 	-- Phase 7 CFG UI labels: text display mode
@@ -20,4 +19,8 @@ PLBeastLocale = {
 	["None"] = "None",
 	["Thin Outline"] = "Thin Outline",
 	["Thick Outline"] = "Thick Outline",
+	-- Phase 8 VIS-06: border style preset row (None/Thin/Thick)
+	["Border Style"] = "Border Style",
+	["Thin"] = "Thin",
+	["Thick"] = "Thick",
 }

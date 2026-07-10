@@ -847,6 +847,67 @@ local function CreateOutlineControl(parent, xOffset, yOffset)
 	return button
 end
 
+-- Phase 8 (VIS-06): one-click border style preset row (None/Thin/Thick),
+-- replacing the old 0-8 Border Thickness slider. borderThickness stays the
+-- persisted source of truth (0/1/3); the active button is derived from it.
+local BORDER_PRESETS = {
+	{ key = "None",  thickness = 0 },
+	{ key = "Thin",  thickness = 1 },
+	{ key = "Thick", thickness = 3 },
+}
+
+local function CreateBorderStyleControl(parent, xOffset, yOffset)
+	local group = CreateFrame("Frame", nil, parent)
+	group:SetSize(230, 38)
+	group:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
+
+	group.label = group:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	group.label:SetPoint("TOPLEFT", group, "TOPLEFT", 0, 0)
+	group.label:SetJustifyH("LEFT")
+	group.label:SetText(L["Border Style"])
+
+	group.buttons = {}
+	local prevButton
+	for _, preset in ipairs(BORDER_PRESETS) do
+		local btn = CreateFrame("Button", nil, group, "UIPanelButtonTemplate")
+		btn:SetSize(70, 22)
+		if prevButton then
+			btn:SetPoint("LEFT", prevButton, "RIGHT", 8, 0)
+		else
+			btn:SetPoint("TOPLEFT", group, "TOPLEFT", 0, -14)
+		end
+		btn:SetText(L[preset.key])
+		btn:SetScript("OnClick", function()
+			DB.borderThickness = preset.thickness
+			ApplyIconSettings()
+			group:RefreshActiveState()
+		end)
+		group.buttons[preset.key] = btn
+		prevButton = btn
+	end
+
+	function group:RefreshActiveState()
+		local thick = tonumber(DB.borderThickness) or 0
+		local activeKey
+		if thick <= 0 then activeKey = "None"
+		elseif thick <= 2 then activeKey = "Thin"
+		else activeKey = "Thick" end
+
+		for key, btn in pairs(self.buttons) do
+			if key == activeKey then
+				btn:LockHighlight()
+				btn:GetFontString():SetTextColor(1, 0.82, 0) -- gold, WoW's standard "selected" color
+			else
+				btn:UnlockHighlight()
+				btn:GetFontString():SetTextColor(1, 1, 1)
+			end
+		end
+	end
+
+	group:RefreshActiveState()
+	return group
+end
+
 ------------------------------------------------------------
 -- Options Frame Layout
 ------------------------------------------------------------
@@ -932,9 +993,16 @@ local function RelayoutOptions(frame)
 
 		SetControlShown(c.border, true)
 		c.border:ClearAllPoints()
-		c.border:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y - 14)
+		c.border:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, y)
 		y = y - 48
 	end
+
+	-- Fit the frame height to the laid-out content (the running y differs per
+	-- mode). Without this the frame keeps its fixed build-time height and leaves
+	-- a large empty gap below the last control. RelayoutOptions runs on build,
+	-- on every open, and right after the Text Mode toggle, so the window re-fits
+	-- live when the mode changes. Width (set in ToggleOptions) stays authoritative.
+	frame:SetHeight(math.abs(y) + 16)
 end
 
 -- ToggleOptions() — lazy-creates and toggles the PLBeast options frame.
@@ -985,17 +1053,7 @@ local function ToggleOptions()
 			-96
 		)
 
-		optionsFrame.controls.border = CreateSlider(
-			optionsFrame,
-			L["Border Thickness"],
-			0, 8, 1,
-			function() return DB.borderThickness or 1 end,
-			function(v)
-				DB.borderThickness = v
-				ApplyIconSettings()
-			end,
-			-144
-		)
+		optionsFrame.controls.border = CreateBorderStyleControl(optionsFrame, 20, -144)
 
 		optionsFrame.controls.lock = CreateCheckbox(
 			optionsFrame,
@@ -1085,20 +1143,24 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 		end
 		DB = PLBeastDB
 
-		-- Deep-copy guard for table-valued default
-		if DB.borderColor == defaults.borderColor then
-			DB.borderColor = { r = 0, g = 0, b = 0, a = 1 }
-		end
-		if type(DB.borderColor) ~= "table" then
-			DB.borderColor = { r = 0, g = 0, b = 0, a = 1 }
-		end
-
 		-- Coerce numeric fields
 		DB.width           = tonumber(DB.width)           or 40
 		DB.height          = tonumber(DB.height)          or 40
 		DB.offsetX         = tonumber(DB.offsetX)         or 0
 		DB.offsetY         = tonumber(DB.offsetY)         or 0
 		DB.borderThickness = tonumber(DB.borderThickness) or 1
+
+		-- Phase 8 (D-06): snap any pre-existing/hand-edited thickness to a valid
+		-- preset (0=None, 1=Thin, 3=Thick) so every user lands on a preset the
+		-- button row can represent. 0 -> None, 1-2 -> Thin, 3+ -> Thick.
+		if DB.borderThickness <= 0 then
+			DB.borderThickness = 0
+		elseif DB.borderThickness <= 2 then
+			DB.borderThickness = 1
+		else
+			DB.borderThickness = 3
+		end
+		DB.borderColor = { r = 0, g = 0, b = 0, a = 1 } -- Phase 8 (D-03): color is permanently black
 
 		-- Phase 7: coerce/validate text display mode fields
 		-- clamp to the same bounds the Font Size slider enforces (8-32) so a
